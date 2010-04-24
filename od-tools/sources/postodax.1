@@ -1,0 +1,28 @@
+.TH postodax 1 "" 
+.SH NAME
+postodax \- Post-processor for od -xa output.
+.SH SYNOPSIS
+od -xa $file | postodax
+.br
+od -xav $file | postodax
+.SH DESCRIPTION
+
+The purpose of the 
+.I postodax
+filter is to put on the same line the ASCII and 
+the hexadecimal lines of a dump produced by 'od -xa' or 'od -xav'.
+	
+.SH OPTIONS
+.ta 0.5i 3i
+.nf
+None.
+.SH FILES
+.nf
+.ta 2i
+None.
+.fi
+.SH SEE\ ALSO
+.sp 0.5
+odhv2hex(1), od(1).
+.SH AUTHOR
+Pascal Bourguignon <pjb@informatimago.com>

@@ -1,0 +1,42 @@
+.TH WHATISIT 1 local
+.SH NAME
+whatisit \- what kind of file is it ?
+.SH SYNOPSIS
+.B whatisit [
+.B \-v
+] 
+.I filename ...
+.SH DESCRIPTION
+.I Whatisit
+is a file-like command printing for each file given as argument its kind:
+.RS
+.TP
+binary
+The file contains lots of byte less than ASCII 32 or more than ASCII 128.
+.TP
+ASCII
+The file contains only printable ASCII characters plus LF, CR and HT.
+.TP
+Macintosh-extended-ASCII
+The file contains ASCII characters plus some Macintosh-extended-ASCII characters.
+.TP
+Next-extended-ASCII
+The file contains ASCII characters plus some non Macintosh-extended-ASCII characters.
+.sp
+.RE
+The 
+.B \-v
+option prints the number of binary characters, ASCII characters, Macintosh characters, NeXT characters, and the total size of the file.
+
+.SH FILES
+none.
+.SH SEE ALSO
+.IR file (1)
+.br
+.SH DIAGNOSTICS
+``Self explanatory.''
+.SH AUTHOR
+Pascal J. Bourguignon
+... ha!
+
+

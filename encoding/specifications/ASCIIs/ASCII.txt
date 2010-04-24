@@ -1,0 +1,469 @@
+0 ASCII NeXT:
+
+\NeXTGraphic13 699044_paste.tiff \width4740 \height3880¨0 
+
+ASCII Macintosh:
+\NeXTGraphic33 ascii-mac.tiff \width4620 \height3640¨0 
+
+ASCII MS-DOS:
+
+\NeXTGraphic51 paste.tiff \width5400 \height4140¨0 
+
+
+
+Postscript NeXTStepEncoding:
+0  	/space	
+!	/exclam	
+"	/quotedbl	
+#	/numbersign	
+$	/dollar	
+%	/percent	
+&	/ampersand	
+'	/quoteright	
+(	/parenleft	
+)	/parenright	
+*	/asterisk	
++	/plus	
+,	/comma	
+-	/hyphen	
+.	/period	
+/	/slash	
+0	/zero	
+1	/one	
+2	/two	
+3	/three	
+4	/four	
+5	/five	
+6	/six	
+7	/seven	
+8	/eight	
+9	/nine	
+:	/colon	
+;	/semicolon	
+<	/less	
+=	/equal	
+>	/greater	
+?	/question	
+@	/at	
+A	/A	
+B	/B	
+C	/C	
+D	/D	
+E	/E	
+F	/F	
+G	/G	
+H	/H	
+I	/I	
+J	/J	
+K	/K	
+L	/L	
+M	/M	
+N	/N	
+O	/O	
+P	/P	
+Q	/Q	
+R	/R	
+S	/S	
+T	/T	
+U	/U	
+V	/V	
+W	/W	
+X	/X	
+Y	/Y	
+Z	/Z	
+[	/bracketleft	
+\\/backslash	
+]	/bracketright	
+^	/asciicircum	
+_	/underscore	
+`	/quoteleft	
+a	/a	
+b	/b	
+c	/c	
+d	/d	
+e	/e	
+f	/f	
+g	/g	
+h	/h	
+i	/i	
+j	/j	
+k	/k	
+l	/l	
+m	/m	
+n	/n	
+o	/o	
+p	/p	
+q	/q	
+r	/r	
+s	/s	
+t	/t	
+u	/u	
+v	/v	
+w	/w	
+x	/x	
+y	/y	
+z	/z	
+{	/braceleft	
+|	/bar	
+}	/braceright	
+~	/asciitilde	
+	/.notdef	
+Ä	/.notdef	
+Å	/Agrave	
+Ç	/Aacute	
+É	/Acircumflex	
+Ñ	/Atilde	
+Ö	/Adieresis	
+Ü	/Aring	
+á	/Ccedilla	
+à	/Egrave	
+â	/Eacute	
+ä	/Ecircumflex	
+ã	/Edieresis	
+å	/Igrave	
+ç	/Iacute	
+é	/Icircumflex	
+è	/Idieresis	
+ê	/Eth	
+ë	/Ntilde	
+í	/Ograve	
+ì	/Oacute	
+î	/Ocircumflex	
+ï	/Otilde	
+ñ	/Odieresis	
+ó	/Ugrave	
+ò	/Uacute	
+ô	/Ucircumflex	
+ö	/Udieresis	
+õ	/Yacute	
+ú	/Thorn	
+ù	/mu	
+û	/multiply	
+ü	/divide	
+†	/copyright	
+°	/exclamdown	
+¢	/cent	
+£	/sterling	
+§	/fraction	
+•	/yen	
+¶	/florin	
+ß	/section	
+®	/currency	
+©	/quotesingle	
+™	/quotedblleft	
+´	/guillemotleft	
+¨	/guilsinglleft	
+≠	/guilsinglright	
+Æ	/fi	
+Ø	/fl	
+∞	/registered	
+±	/endash	
+≤	/dagger	
+≥	/daggerdbl	
+¥	/periodcentered	
+µ	/brokenbar	
+∂	/paragraph	
+∑	/bullet	
+∏	/quotesinglbase	
+π	/quotedblbase	
+∫	/quotedblright	
+ª	/guillemotright	
+º	/ellipsis	
+Ω	/perthousand	
+æ	/logicalnot	
+ø	/questiondown	
+¿	/onesuperior	
+¡	/grave	
+¬	/acute	
+√	/circumflex	
+ƒ	/tilde	
+≈	/macron	
+∆	/breve	
+«	/dotaccent	
+»	/dieresis	
+…	/twosuperior	
+ 	/ring	
+À	/cedilla	
+Ã	/threesuperior	
+Õ	/hungarumlaut	
+Œ	/ogonek	
+œ	/caron	
+–	/emdash	
+—	/plusminus	
+“	/onequarter	
+”	/onehalf	
+‘	/threequarters	
+’	/agrave	
+÷	/aacute	
+◊	/acircumflex	
+ÿ	/atilde	
+Ÿ	/adieresis	
+⁄	/aring	
+€	/ccedilla	
+‹	/egrave	
+›	/eacute	
+ﬁ	/ecircumflex	
+ﬂ	/edieresis	
+‡	/igrave	
+·	/AE	
+‚	/iacute	
+„	/ordfeminine	
+‰	/icircumflex	
+Â	/idieresis	
+Ê	/eth	
+Á	/ntilde	
+Ë	/Lslash	
+È	/Oslash	
+Í	/OE	
+Î	/ordmasculine	
+Ï	/ograve	
+Ì	/oacute	
+Ó	/ocircumflex	
+Ô	/otilde	
+	/odieresis	
+Ò	/ae	
+Ú	/ugrave	
+Û	/uacute	
+Ù	/ucircumflex	
+ı	/dotlessi	
+ˆ	/udieresis	
+˜	/yacute	
+¯	/lslash	
+˘	/oslash	
+˙	/oe	
+˚	/germandbls	
+¸	/thorn	
+˝	/ydieresis	
+˛	/.notdef	
+ˇ	/.notdef	
+
+
+ 	 /space	 
+ ! 	 /exclam	 
+ " 	 /universal	 
+ # 	 /numbersign	 
+ $ 	 /existential	 
+ % 	 /percent	 
+ & 	 /ampersand	 
+ ' 	 /suchthat	 
+ ( 	 /parenleft	 
+ ) 	 /parenright	 
+ * 	 /asteriskmath	 
+ + 	 /plus	 
+ , 	 /comma	 
+ - 	 /minus	 
+ . 	 /period	 
+ / 	 /slash	 
+ 0 	 /zero	 
+ 1 	 /one	 
+ 2 	 /two	 
+ 3 	 /three	 
+ 4 	 /four	 
+ 5 	 /five	 
+ 6 	 /six	 
+ 7 	 /seven	 
+ 8 	 /eight	 
+ 9 	 /nine	 
+ : 	 /colon	 
+ ; 	 /semicolon	 
+ < 	 /less	 
+ = 	 /equal	 
+ > 	 /greater	 
+ ? 	 /question	 
+ @ 	 /congruent	 
+ A 	 /Alpha	 
+ B 	 /Beta	 
+ C 	 /Chi	 
+ D 	 /Delta	 
+ E 	 /Epsilon	 
+ F 	 /Phi	 
+ G 	 /Gamma	 
+ H 	 /Eta	 
+ I 	 /Iota	 
+ J 	 /theta1	 
+ K 	 /Kappa	 
+ L 	 /Lambda	 
+ M 	 /Mu	 
+ N 	 /Nu	 
+ O 	 /Omicron	 
+ P 	 /Pi	 
+ Q 	 /Theta	 
+ R 	 /Rho	 
+ S 	 /Sigma	 
+ T 	 /Tau	 
+ U 	 /Upsilon	 
+ V 	 /sigma1	 
+ W 	 /Omega	 
+ X 	 /Xi	 
+ Y 	 /Psi	 
+ Z 	 /Zeta	 
+ [ 	 /bracketleft	 
+ \
+ 	 /therefore	 
+ ] 	 /bracketright	 
+ ^ 	 /perpendicular	 
+ _ 	 /underscore	 
+ ` 	 /radicalex	 
+ a 	 /alpha	 
+ b 	 /beta	 
+ c 	 /chi	 
+ d 	 /delta	 
+ e 	 /epsilon	 
+ f 	 /phi	 
+ g 	 /gamma	 
+ h 	 /eta	 
+ i 	 /iota	 
+ j 	 /phi1	 
+ k 	 /kappa	 
+ l 	 /lambda	 
+ m 	 /mu	 
+ n 	 /nu	 
+ o 	 /omicron	 
+ p 	 /pi	 
+ q 	 /theta	 
+ r 	 /rho	 
+ s 	 /sigma	 
+ t 	 /tau	 
+ u 	 /upsilon	 
+ v 	 /omega1	 
+ w 	 /omega	 
+ x 	 /xi	 
+ y 	 /psi	 
+ z 	 /zeta	 
+{	 /braceleft	 
+ | 	 /bar	 
+}	 /braceright	 
+ ~ 	 /similar	 
+  	 /.notdef	 
+ Ä 	 /.notdef	 
+ Å 	 /.notdef	 
+ Ç 	 /.notdef	 
+ É 	 /.notdef	 
+ Ñ 	 /.notdef	 
+ Ö 	 /.notdef	 
+ Ü 	 /.notdef	 
+ á 	 /.notdef	 
+ à 	 /.notdef	 
+ â 	 /.notdef	 
+ ä 	 /.notdef	 
+ ã 	 /.notdef	 
+ å 	 /.notdef	 
+ ç 	 /.notdef	 
+ é 	 /.notdef	 
+ è 	 /.notdef	 
+ ê 	 /.notdef	 
+ ë 	 /.notdef	 
+ í 	 /.notdef	 
+ ì 	 /.notdef	 
+ î 	 /.notdef	 
+ ï 	 /.notdef	 
+ ñ 	 /.notdef	 
+ ó 	 /.notdef	 
+ ò 	 /.notdef	 
+ ô 	 /.notdef	 
+ ö 	 /.notdef	 
+ õ 	 /.notdef	 
+ ú 	 /.notdef	 
+ ù 	 /.notdef	 
+ û 	 /.notdef	 
+ ü 	 /.notdef	 
+ † 	 /.notdef	 
+ ° 	 /Upsilon1	 
+ ¢ 	 /minute	 
+ £ 	 /lessequal	 
+ § 	 /fraction	 
+ • 	 /infinity	 
+ ¶ 	 /florin	 
+ ß 	 /club	 
+ ® 	 /diamond	 
+ © 	 /heart	 
+ ™ 	 /spade	 
+ ´ 	 /arrowboth	 
+ ¨ 	 /arrowleft	 
+ ≠ 	 /arrowup	 
+ Æ 	 /arrowright	 
+ Ø 	 /arrowdown	 
+ ∞ 	 /degree	 
+ ± 	 /plusminus	 
+ ≤ 	 /second	 
+ ≥ 	 /greaterequal	 
+ ¥ 	 /multiply	 
+ µ 	 /proportional	 
+ ∂ 	 /partialdiff	 
+ ∑ 	 /bullet	 
+ ∏ 	 /divide	 
+ π 	 /notequal	 
+ ∫ 	 /equivalence	 
+ ª 	 /approxequal	 
+ º 	 /ellipsis	 
+ Ω 	 /arrowvertex	 
+ æ 	 /arrowhorizex	 
+ ø 	 /carriagereturn	 
+ ¿ 	 /aleph	 
+ ¡ 	 /Ifraktur	 
+ ¬ 	 /Rfraktur	 
+ √ 	 /weierstrass	 
+ ƒ 	 /circlemultiply	 
+ ≈ 	 /circleplus	 
+ ∆ 	 /emptyset	 
+ « 	 /intersection	 
+ » 	 /union	 
+ … 	 /propersuperset	 
+   	 /reflexsuperset	 
+ À 	 /notsubset	 
+ Ã 	 /propersubset	 
+ Õ 	 /reflexsubset	 
+ Œ 	 /element	 
+ œ 	 /notelement	 
+ – 	 /angle	 
+ — 	 /gradient	 
+ “ 	 /registerserif	 
+ ” 	 /copyrightserif	 
+ ‘ 	 /trademarkserif	 
+ ’ 	 /product	 
+ ÷ 	 /radical	 
+ ◊ 	 /dotmath	 
+ ÿ 	 /logicalnot	 
+ Ÿ 	 /logicaland	 
+ ⁄ 	 /logicalor	 
+ € 	 /arrowdblboth	 
+ ‹ 	 /arrowdblleft	 
+ › 	 /arrowdblup	 
+ ﬁ 	 /arrowdblright	 
+ ﬂ 	 /arrowdbldown	 
+ ‡ 	 /lozenge	 
+ · 	 /angleleft	 
+ ‚ 	 /registersans	 
+ „ 	 /copyrightsans	 
+ ‰ 	 /trademarksans	 
+ Â 	 /summation	 
+ Ê 	 /parenlefttp	 
+ Á 	 /parenleftex	 
+ Ë 	 /parenleftbt	 
+ È 	 /bracketlefttp	 
+ Í 	 /bracketleftex	 
+ Î 	 /bracketleftbt	 
+ Ï 	 /bracelefttp	 
+ Ì 	 /braceleftmid	 
+ Ó 	 /braceleftbt	 
+ Ô 	 /braceex	 
+  	 /.notdef	 
+ Ò 	 /angleright	 
+ Ú 	 /integral	 
+ Û 	 /integraltp	 
+ Ù 	 /integralex	 
+ ı 	 /integralbt	 
+ ˆ 	 /parenrighttp	 
+ ˜ 	 /parenrightex	 
+ ¯ 	 /parenrightbt	 
+ ˘ 	 /bracketrighttp	 
+ ˙ 	 /bracketrightex	 
+ ˚ 	 /bracketrightbt	 
+ ¸ 	 /bracerighttp	 
+ ˝ 	 /bracerightmid	 
+ ˛ 	 /bracerightbt	 
+ ˇ 	 /.notdef	 
+ 
+
+ 
+

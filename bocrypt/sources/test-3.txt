@@ -1,0 +1,29 @@
+Hao Wang, logicien americain.
+
+L'algorithme en  question  a  été  publié  en  1960  dans l'IBM Journal,
+article intitule "Toward  Mechanical Mathematics", avec des variantes et
+une  extension au calcul  des  prédicats.  Il  s'agit  ici  du  "premier
+programme" de Wang, systeme "P".
+
+L'article a été écrit en 1958, et les expériences effectuées sur IBM 704
+­ machine à lampes, 32 k  mots  de 36 bits, celle­là même qui vit naître
+LISP à la même époque. Le programme  a  été écrit en assembleur (Fortran
+existait, mais il ne s'était pas encore imposé)  et  l'auteur estime que
+"there is very little in the program that is not straightforward".
+
+Il observe que les preuves engendrées sont "essentiellement des arbres",
+et  annonce  que  la  machine  a  démontre 220 théorèmes du  calcul  des
+propositions  (tautologies)  en  3  minutes. Il en tire argument pour la
+supériorité  d'une  approche  algorithmique  par  rapport à une approche
+heuristique comme celle du "Logic Theorist" de Newell, Shaw et  Simon (à
+partir de 1956 sur la machine JOHNNIAC de la Rand Corporation): un débat
+qui dure encore...
+
+Cet  algorithme  a  été popularisé par J. McCarthy, comme exemple­fanion
+d'application  de LISP. Il figure dans le manuel de la première  version
+de  LISP  (LISP  1,  sur IBM 704 justement, le manuel est daté  de  Mars
+1960), et il a été repris dans le celebre "LISP 1.5 Programmer's Manual"
+publié en 1962 par MIT Press, un des maîtres­livres de l'Informatique.
+
+
+

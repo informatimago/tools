@@ -1,0 +1,6 @@
+all:        check for directory parameters and either recursively process 
+            or reject them.
+
+lc:         add a verbose option to lc and nema.
+whatisit:   add a status option to whatisit : isit -not -macintosh <file>...
+whatisit:   Check it and remove ¬©­ from the Macintosh character set.

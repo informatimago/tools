@@ -1,0 +1,288 @@
+/*ﬁN
+FILE
+ ﬁbh.c
+DESCRIPTION
+	This tool can fork or join data, resource and hqxinfo fork of a binhex
+	encoded file:
+		fname.hqx <-> (fname.data, fname.rsrc, fname.hqxinfo)
+
+	Usage: bh -keys fname
+		keys : x|c|t [v] [7|8] [f hqxfile] [fname]
+		same meaning as tar; t implies v and does nop.
+	
+		bhinfo hqxfile	ﬁ# or
+		bhinfo < hqxfile	ﬁ# or
+		bh -tf hqxfile		 			# or
+		bh -t < hqxfile	ﬁ# will display the hqxinfo header.
+			=> 
+			 ﬁname = "filename"
+			 ﬁtype = 'type'
+			 ﬁcreator = 'crea'
+			 ﬁ
+flags = $xﬁ
+			 ﬁdata fork size = 9ﬁ
+			resource fork size = 9ﬁ
+		
+		bhdecode < hqxfile
+		bhdecode hqxfile
+		bh -xf[v] hqxfile [fname] 		# or
+		bh -x[v] [fname] < hqxfile		# will create fname.data, fname.rsrc
+	ﬁ
+# and fname.hqxinfo
+			input hqxfile may be in Hqx7 as well as in Hqx8 format.
+			if fname is not specified, it is taken from hqxfile header.
+			=> create fname.data, fname.rsrc and fname.hqxinfo
+			
+		bhencode [-7|-8] [-t TYPE] [-c CREA] fname > hqxfile
+		bhencode [-7|-8] [-t TYPE] [-c CREA] fname hqxfile
+		bh -cf[v][7|8] [-t TYPE] [-c CREA] hqxfile fname 	# or
+		bh -c[v][7|8] [-t TYPE] [-c CREA] fname > hqxfile	# at least
+	ﬁ
+# one of fname.data,
+	ﬁ
+# fname.rsrc or fname.hqxinfo
+	ﬁ
+# must exist.
+			output file is in Hqx8 format by default.
+			-7 => Hqx7 format.
+			=> grab fname.data, fname.rsrc and fname.hqxinfo	ﬁ
+
+	( -c fname [ -7 | -8 ] [ -T type ] [ -C crea ] | -x [ fname ] | -t )
+		 [ -v ] [ -f hqxfile ]
+
+AUTHOR
+	<PJB> Pascal J. Bourguignon
+MODIFICATIONS
+	1992/05/13 <PJB> Creation.
+	1993/04/28 <PJB> Programmed analysis of parameters.
+BUGS
+	bh -t  reads the whole hqx file.
+LEGAL
+	Copyright Pascal J. Bourguignon 1992 - 1993
+*ﬁN/
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#include <BcInterface.h>
+#include <BcTypes.h>
+#include <BinHex.h>
+#include <BcImplementation.h>
+
+	BOOLEAN bhget(void* file,char* byte)
+	{
+		return(fread(byte,sizeof(char),1,(FILE*)file)==1);			
+	}//bhget
+
+	BOOLEAN bhput(void* file,char byte)
+	{
+		return(fwrite(&byte,sizeof(char),1,(FILE*)file)==1);			
+	}//bhput
+ﬁ	static CHAR Usage[]=
+	ﬁ"### Usage:\n\tbh (-c fname [-7|-8] [-T type] "
+	ﬁ"[-C crea]|-x [fname]|-t) [-v] [-f hqxfile]\n"
+	ﬁ"#\tbhinfo   <=> bh -t\n"
+	ﬁ"#\tbhencode <=> bh -c\n"
+	ﬁ"#\tbhdecode <=> bh -x\n";
+	
+	
+PROCEDURE(main,(int argc,char* argv[]),int)
+{
+
+		FILE*			fhqx;
+		FILE*			fdata;
+		FILE*			frsrc;
+		FILE*			finfo;
+		BinHex_InfoT	info;
+		
+/*
+	( -c fname [ -7 | -8 ] [ -T type ] [ -C crea ] | -x [ fname ] | -t )
+		 [ -v ] [ -f hqxfile ]
+*/
+		BOOLEAN		nooption=TRUE;		// -c or -x or -t mandatory!
+		BOOLEAN		create=FALSE;		// -c
+		BOOLEAN		sevenSet=FALSE;
+		BOOLEAN		seven=FALSE;		// -7|-8
+		BOOLEAN		typeSet=FALSE;		// -T
+		CARD32		type;
+		BOOLEAN		creatorSet=FALSE;	// -C
+		CARD32		creator;
+		BOOLEAN		extract=FALSE;		// -x
+		CHAR*		fname=NIL;			// (NIL or fname)
+		BOOLEAN		getinfo=FALSE;		// -t
+		BOOLEAN		verbose=FALSE;		// -v
+		CHAR*		hqxname=NIL;		// -f (NIL or hqxname)
+		
+		CARD16		i;
+		CARD16		j;
+		
+	i=1;
+	while(i<argc){
+		if(argv[i][0]=='-'){
+			if(argv[i][2]!=(CHAR)0){
+	ﬁfprintf(stderr,"### Invalid option: %s\n%s",argv[i],Usage);
+	ﬁreturn(1);
+			}
+			switch(argv[i][1]){
+			case 'c':
+			case 'x':
+			case 't':
+	ﬁif(!nooption){
+	ﬁfprintf(stderr,"### Only one option from {-c, -x, -t} "
+	ﬁ	"at once.\n%s",Usage);
+	ﬁreturn(1);
+	ﬁ}
+	ﬁnooption=FALSE;
+	ﬁswitch(argv[i][1]){
+	ﬁcase 'c':
+	ﬁcreate=TRUE;
+	ﬁj=i+1;
+	ﬁif(j<argc){
+	ﬁfname=argv[j];
+	ﬁ}else{
+	ﬁfprintf(stderr,"### -c must be followed by the "
+	ﬁ
+"file name\n%s",Usage);
+	ﬁreturn(1);
+	ﬁ}
+	ﬁi=j;
+	ﬁbreak;
+	ﬁcase 'x':
+	ﬁextract=TRUE;
+	ﬁj=i+1;
+	ﬁif(j<argc){
+	ﬁif(argv[j][0]!='-'){
+	ﬁfname=argv[j];
+	ﬁi=j;
+	ﬁ}
+	ﬁ}
+	ﬁbreak;
+	ﬁcase 't':
+	ﬁgetinfo=TRUE;
+	ﬁbreak;
+	ﬁ}
+	ﬁbreak;
+			case '7':
+			case '8':
+	ﬁif(!create){
+	ﬁfprintf(stderr,"### -7 or -8 can only be used "
+	ﬁ	"after -c\n%s",Usage);
+	ﬁreturn(1);
+	ﬁ}
+	ﬁif(sevenSet){
+	ﬁfprintf(stderr,"### Only one option from {-7, -8} "
+	ﬁ	"at once.\n%s",Usage);
+	ﬁreturn(1);
+	ﬁ}
+	ﬁsevenSet=TRUE;
+	ﬁseven=argv[i][1]=='7';
+	ﬁbreak;
+			case 'T':
+			case 'C':
+	ﬁif(!create){
+	ﬁfprintf(stderr,"### -T or -C can only be used "
+	ﬁ	"after -c\n%s",Usage);
+	ﬁreturn(1);
+	ﬁ}
+	ﬁj=i+1;
+	ﬁif(j<argc){
+	ﬁif(strlen(argv[j])!=4){
+	ﬁfprintf(stderr,"### -T or -C must be followed by "
+	ﬁ
+"a four-character string\n%s",Usage);
+	ﬁreturn(1);
+	ﬁ}
+	ﬁif(argv[i][1]=='T'){
+	ﬁif(typeSet){
+	ﬁfprintf(stderr,"### -T may be specified "
+	ﬁ"only once\n%s",Usage);
+	ﬁreturn(1);
+	ﬁ}
+	ﬁtype=*(CARD32*)(&(argv[j]));
+	ﬁtypeSet=TRUE;
+	ﬁ}else{
+	ﬁif(creatorSet){
+	ﬁfprintf(stderr,"### -T may be specified "
+	ﬁ"only once\n%s",Usage);
+	ﬁreturn(1);
+	ﬁ}
+	ﬁcreator=*(CARD32*)(&(argv[j]));
+	ﬁcreatorSet=TRUE;
+	ﬁ}
+	ﬁ}else{
+	ﬁfprintf(stderr,"### -T or -C must be followed by a type "
+	ﬁ	" or a creator (4 char)\n%s",Usage);
+	ﬁreturn(1);
+	ﬁ}
+	ﬁi=j;
+	ﬁbreak;
+			case 'f':
+	ﬁif(hqxname!=NIL){
+	ﬁfprintf(stderr,"### -f may be specified "
+	ﬁ	"only once\n%s",Usage);
+	ﬁreturn(1);
+	ﬁ}
+	ﬁj=i+1;
+	ﬁif(j<argc){
+	ﬁhqxname=argv[j];
+	ﬁ}else{
+	ﬁfprintf(stderr,"### -f must be followed by the hqx "
+	ﬁ	"file name\n%s",Usage);
+	ﬁreturn(1);
+	ﬁ}
+	ﬁi=j;
+	ﬁbreak;
+			case 'v':
+	ﬁif(verbose){
+	ﬁfprintf(stderr,"### -v may be specified "
+	ﬁ	"only once\n%s",Usage);
+	ﬁreturn(1);
+	ﬁ}
+	ﬁverbose=TRUE;
+	ﬁbreak;
+			default:
+	ﬁfprintf(stderr,"### Invalid option: %s\n%s",argv[i],Usage);
+	ﬁreturn(1);
+			}
+		}
+		INC(i);
+	}
+	if(nooption){
+		fprintf(stderr,"### At least one of {-c, -x, -t} must be "
+	ﬁ"specified.\n%s",Usage);
+		return(1);
+	}
+	
+	if(create){
+		if(hqxname==NIL){
+			fhqx=stdout;
+		}else{
+			fhqx=fopen(hqxname,"w");
+			if(fhqx==NIL){
+	ﬁfprintf(stderr,"### Cannot create output file %s\n",hqxname);
+	ﬁreturn(2);
+			}
+		}
+		if(seven){
+		
+		}else{
+		
+		}
+	}else{
+		if(hqxname==NIL){
+			fhqx=stdin;
+		}else{
+			fhqx=fopen(hqxname,"r");
+			if(fhqx==NIL){
+	ﬁfprintf(stderr,"### Cannot open input file %s\n",hqxname);
+	ﬁreturn(2);
+			}
+		}
+		if(extract){
+		
+		}else{
+		
+		}
+	}
+	
+}//main

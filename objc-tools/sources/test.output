@@ -1,0 +1,42 @@
+    -(int)entier;
+    -(void)setEntier:(int)nEntier;
+    -(char*)chaine;
+    -(void)setChaine:(char*)nChaine;
+    -(unsigned char)caractere;
+    -(void)setCaractere:(unsigned char)nCaractere;
+
+    -(int)entier
+    {
+        return(entier);
+    }//entier;
+
+
+    -(void)setEntier:(int)nEntier
+    {
+        entier=nEntier;
+    }//setEntier:;
+
+
+    -(char*)chaine
+    {
+        return(chaine);
+    }//chaine;
+
+
+    -(void)setChaine:(char*)nChaine
+    {
+        chaine=nChaine;
+    }//setChaine:;
+
+
+    -(unsigned char)caractere
+    {
+        return(caractere);
+    }//caractere;
+
+
+    -(void)setCaractere:(unsigned char)nCaractere
+    {
+        caractere=nCaractere;
+    }//setCaractere:;
+

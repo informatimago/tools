@@ -1,0 +1,11 @@
+This is the ascii_utilities program directory. It contains:
+
+README				this file.
+specifications/     specification documents.
+analysis/           analysis documents.
+architecture/       architecture and system design documents.
+design/             program design documents.
+documentation/      user or client documentation.
+sources/            source files.
+reviews/            analysis and code reviews.
+tests/              test files and programs.

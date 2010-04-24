@@ -1,0 +1,3 @@
+int           entier
+char*         chaine
+unsigned char caractere

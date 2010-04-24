@@ -1,0 +1,61 @@
+.TH LCAT 1 local
+.SH NAME
+lcat \- line catenate
+.SH SYNOPSIS
+.B lcat 
+\( [ \-L | \-T | \-tc | \-t | \-e ] 
+.I file 
+| - ) ...
+.SH DESCRIPTION
+.I lcat
+takes arguments files as input and writes to stdout lines made 
+of the concatenation of lines from each input files.
+.RS
+.TP
+\-L
+use the new line character to separate output fields.
+(this merges the input files line by line).
+.TP
+\-T
+use the TAB character to separate output fields.
+.TP
+\-t
+.I c
+use the character 
+.I c
+to separate output fields. 
+.TP
+\-t
+use \\0 to catenate output fields.
+.TP
+\-e
+(default) do not separate the output fields.
+.TP
+\-
+stand for the stdin. Default does not read stdin.
+.sp
+For example:
+.sp
+	lcat - tete -L toto -T tata titi -e tutu -t! toto tyty
+.sp
+gives:
+.RE
+	stdinline1teteline1
+	totoline1	tataline1	titiline1tutuline1!totoline1!tytyline1
+	stdinline2teteline2
+	totoline2	tataline2	titiline2tutuline2!totoline2!tytyline2
+.SH FILES
+none.
+.SH SEE ALSO
+.IR lcut (1)
+.IR ldiff (1)
+.br
+.SH DIAGNOSTICS
+``Self explanatory.''
+.SH BUGS
+One cannot easily add a seperator character at the begining of the output lines.
+.SH AUTHOR
+Pascal J. Bourguignon
+... ha!
+
+

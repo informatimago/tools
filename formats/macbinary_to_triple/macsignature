@@ -1,0 +1,42 @@
+#******************************************************************************
+#FILE:				macsignature
+#LANGUAGE:			syntax described below.
+#SYSTEM:			None
+#USER-INTERFACE:	None
+#DESCRIPTION
+#	This file associates type/creator couples with file name extensions.
+#AUTHORS
+#	<PJB> Pascal J. Bourguignon
+#MODIFICATIONS
+#	1993/??/?? <PJB> Creation.
+#LEGAL
+#	Copyright Pascal J. Bourguignon 1993 - 1993
+#	All right reserved
+#	This program may not be included in any commercial product without the 
+#	author written permission. It may be used freely for any non-commercial 
+#	purpose, provided that this header is always included.
+#******************************************************************************
+# syntax of type or creator:
+#
+#	typeCreator	::= fourchar | fourhexa | empty
+#	fourchar	::= <'> <character> <character> <character> <character> <'>
+#	fourhexa	::= hexadigit hexadigit hexadigit hexadigit hexadigit hexadigit hexadigit hexadigit 
+#	hexadigit	::= <0> | <1> | <2> | <3> | <4> | <5> | <6> | <7>
+#				  | <8> | <9> | <A> | <B> | <C> | <D> | <E> | <F>
+#	empty		::= <->
+
+
+# type creator	extension list (first one is priviledged)
+
+'nX^d'	'nX^n'	wn	
+'XLS '	'XCEL'	excel
+'WNGZ'	'WNGZ'	wz wingz
+'DRVG'	'MDPL'	md macdraw
+
+# type empty_creator	default extension (may be empty, ie. dash)
+
+'TEXT'	-	-
+
+#
+# That's all, folks.
+#

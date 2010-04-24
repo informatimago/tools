@@ -1,0 +1,14 @@
+#!/bin/sh
+	for test in test-*.env ; do
+		cshout=`echo $test|sed -e 's/env/csh-out/'`      
+		csherr=`echo $test|sed -e 's/env/csh-err/'`      
+		environment --csh < $test > $cshout 2> $csherr 
+		diff $cshout $cshout-ref                        
+		diff $csherr $csherr-ref                        
+		shout=`echo $test|sed -e 's/env/sh-out/'`        
+		sherr=`echo $test|sed -e 's/env/sh-err/'`        
+		environment --sh < $test > $shout 2> $sherr    
+		diff $shout $shout-ref 
+		diff $sherr $sherr-ref                          
+	done
+

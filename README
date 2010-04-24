@@ -1,0 +1,40 @@
+
+ bocrypt cookie cplusinherited des-crypt dosname encoding extractbit1 filldisk formats geturls insidemac iw2ascii line_utilities lti memcheck mpa network newmoon newton objc od-tools pascalcomments pjbheader postdrawover primes random_stat segment sound sum32 sumascii texttotiff truncate
+
+
+ascii-utilities     A set of ASCII or text file utilities.
+base                A tool to convert number to a base.
+bocrypt             A one-time-pad and a substitution encryption.
+cookie
+cplusinherited
+dosname
+encoding
+environment
+extractbit1
+filldisk
+formats
+geturls
+line-utilities
+mpa
+network
+newmoon
+newton
+objc
+od-tools
+pascalcomments
+pjbheader
+pmd
+postdrawover
+primes
+random-stat
+relief
+romain
+segment
+sound
+sum32
+sumascii
+texttotiff
+truncate
+ttv-remote
+wep
+xor

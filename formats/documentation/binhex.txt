@@ -1,0 +1,77 @@
+-------------------------------------------------------------------------------
+
+REA
+Mainstay                                         4/11/85      Yves Lempereur
+-------------------------------------------------------------------------------
+
+Macintosh 7 & 8 bit File Transfer Format - Protocol Independent
+
+Here is a description of the Hqx7 (7 bit format as implemented in BinHex
+4.0) and Hqx8 (8 bit format) formats for Macintosh Application and File
+transfers. The main features of the formats are:
+1) Error checking even using ASCII download (Hqx7 & Hqx8)
+2) Compression of repetitive characters     (Hqx7 & Hqx8)
+3) 7 bit encoding for ASCII download        (Hqx7)
+
+HQX Format Description (This is not intended to be a programmer's reference).
+
+The format is processed at three different levels:
+
+1) 8 bit encoding of the file:
+
+     Byte:      Length of FileName (1->63)
+     Bytes:     FileName ("Length" bytes)
+     Byte:      Version
+     Long:      Type
+     Long:      Creator
+     Word:      Flags (And $F800)
+     Long:      Length of Data Fork
+     Long:      Length of Resource Fork
+     Word:      CRC
+     Bytes:     Data Fork ("Data Length" bytes)
+     Word:      CRC
+     Bytes:     Resource Fork ("Rsrc Length" bytes)
+     Word:      CRC
+
+2) Compression of repetitive characters.
+
+     ($90 is the marker, encoding is made for 3->255 characters)
+
+     00 11 22 33 44 55 66 77      ->      00 11 22 33 44 55 66 77
+     11 22 22 22 22 22 22 33      ->      11 22 90 06 33
+     11 22 90 33 44               ->      11 22 90 00 33 44
+
+3) 7 bit encoding (Hqx7 only).
+
+   The whole file is considered as a stream of bits. This stream will
+   be divided in blocks of 6 bits and then converted to one of 64
+   characters contained in a table. The characters in this table have
+   been chosen for maximum noise protection.
+   The format will start with a ":" (first character on a line) and
+   end with a ":". There will be a maximum of 64 characters on a line.
+   It can be preceeded by comments for novice users.
+
+   Table:
+   !"#$%&'()*+,-012345689@ABCDEFGHIJKLMNPQRSTUVXYZ[`abcdefhijklmpqr
+
+   Comment:
+   (This file must be converted with BinHex 4.0)
+
+-------------------------------------------------------------------------------
+    Keywords: MACINTOSH BINHEX FORMAT INFORMATION DOCUMENTATION DECODED
+
+    This file was found on ARPANET, and describes (in technical terms) the
+    BINHEX version 4 format.  Uploaded by Christopher Allen 76703,472.
+
+-------------------------------------------------------------------------------
+
+      Date: 17 Mar 85 (Sun) 00:40:45 EST
+      From: Dave Johnson <ddj%brown.csnet@csnet-relay.arpa> Subject: Re:
+      Details of Binhex 4.0 HQX Format Wanted
+      I have reverse engineered most of the format, and am planning to release
+      a new version of xbin.c fairly soon, which will convert files from
+      binhex.{hex,hcx, and hqx} formats into the form macput expects. xbin was
+      developed under 4.2BSD Unix, though it should be rea
+
+
+

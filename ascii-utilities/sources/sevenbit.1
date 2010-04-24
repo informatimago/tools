@@ -1,0 +1,45 @@
+.TH sevenbit 1 local
+.SH NAME
+sevenbit \- convert between 7-bit and 8-bit ASCII streams.
+.SH SYNOPSIS
+.B sevenbit \-8
+<
+.I 7_bit_stream
+>
+.I 8_bit_stream
+.LP 
+.B sevenbit \ \ 
+<
+.I 8_bit_stream
+>
+.I 7_bit_stream
+
+.SH DESCRIPTION
+.I sevenbit
+is a filter used to convert between 8-bit ASCII and 7-bit ASCII streams.
+.LP
+.TP
+.B \-8
+\\?? and \\#?? sequences are converted to 8-bit bytes.
+.TP
+(default) 
+Accented letters are converted to custom \\?? sequences, and other extended
+characters (>127) are converted to \\#?? sequences
+.SH FILES
+None.
+.SH SEE ALSO
+.IR text (1)
+To filter out non ASCII characters.
+.br
+.IR nema (1)
+To convert between extended ASCII sets.
+.br
+.SH DIAGNOSTICS
+None.
+.SH BUGS
+Only one extended ASCII set is currently supported: the NeXT encoding.
+.SH AUTHOR
+Pascal J. Bourguignon
+... ha!
+
+

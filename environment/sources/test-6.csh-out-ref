@@ -1,0 +1,20 @@
+setenv COMMENTED_0 
+setenv COMMENTED_1 
+setenv UNQUOTED ôné
+setenv UNQUOTED_single one'quote
+setenv UNQUOTED_double two"quote
+setenv UNQUOTED_back tree`quote
+setenv UNQUOTED_ESCAPED_0 \#\ escaped
+setenv UNQUOTED_ESCAPED_1 an\ escape
+setenv UNQUOTED_ESCAPED_2 an\#escape
+setenv UNQUOTED_COMMENTED one
+setenv UNQUOTED_ESCAPED_COMMENTED an\ escape
+setenv SINGLE_QUOTED 'une \# quôté'
+setenv SINGLE_QUOTED_COMMENTED 'une \# quôté'
+setenv DOUBLE_QUOTED "une \# quôté"
+setenv DOUBLE_QUOTED_COMMENTED "une \# quôté"
+setenv BACK_QUOTED `une \# quôté`
+setenv BACK_QUOTED_COMMENTED `une \# quôté`
+setenv GOOD_SINGLE_QUOTE 'a # comment'
+setenv GOOD_DOUBLE_QUOTE "a # comment"
+setenv GOOD_BACK_QUOTE `a # comment`
