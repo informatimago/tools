@@ -13,7 +13,7 @@ MODIFICATIONS
    
     1995-11-05 <PJB> Creation. 
 LEGAL
-    Copyright Pascal J. Bourguignon 1995 - 2001
+    Copyright Pascal J. Bourguignon 1995 - 2011
 
     GPL
 

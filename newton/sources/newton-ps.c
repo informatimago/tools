@@ -15,7 +15,7 @@ BUGS
 LEGAL
     GPL
     
-    Copyright Pascal Bourguignon 1991 - 1992
+    Copyright Pascal Bourguignon 1991 - 2011
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -39,30 +39,31 @@ LEGAL
 
 
 /*
-    F=K*M*m/d/d
-    a0=K*m1/d/d
-    a1=K*m0/d/d
+  F=K*M*m/d/d
+  a0=K*m1/d/d
+  a1=K*m0/d/d
 */
 
 static double get_double(void)
 {
-            float   m;
+    float   m;
 
-        scanf("%e",&m);
-        return((double)m);
+    int r=scanf("%e",&m);
+    (void)r;
+    return((double)m);
 }/*get_double*/
 
 int main(void)
 {
-            double  m0,r0;
-            double  m1;
-            double  x0,yy0,vx0,vyy0;
-            double  x1,yy1,vx1,vyy1;
-            double  d,a,t,dt;   
-            double  ax0,ayy0,ax1,ayy1,ux,uyy;
-            double  coef;
-            double  it0,it1,ia;
-            int     i;
+    double  m0,r0;
+    double  m1;
+    double  x0,yy0,vx0,vyy0;
+    double  x1,yy1,vx1,vyy1;
+    double  d,a,t,dt;   
+    double  ax0,ayy0,ax1,ayy1,ux,uyy;
+    double  coef;
+    double  it0,it1,ia;
+    int     i;
             
     fprintf(stderr,"Max X=");
     coef=300.0/get_double();
@@ -98,20 +99,20 @@ int main(void)
     dt=get_double();
     
     fprintf(stdout,
-        "/myywind 100 100 600 600 Retained window def \n"
-        "Above 0 myywind orderwindow \n"
-        "myywind windowdeviceround \n"
-        "0.0 setgrayy 0 1 599 599 rectstroke \n"
-        "300 300 translate \n"
-        "0.666 setgrayy \n"
-        "%g %g %g 0 360 arc fill \n"
-        "0.0 setgrayy \n"
-        "%g %g moveto \n",
-        x0*coef,yy0*coef,r0*coef,
-        x1*coef,yy1*coef
-    );
+            "/myywind 100 100 600 600 Retained window def \n"
+            "Above 0 myywind orderwindow \n"
+            "myywind windowdeviceround \n"
+            "0.0 setgrayy 0 1 599 599 rectstroke \n"
+            "300 300 translate \n"
+            "0.666 setgrayy \n"
+            "%g %g %g 0 360 arc fill \n"
+            "0.0 setgrayy \n"
+            "%g %g moveto \n",
+            x0*coef,yy0*coef,r0*coef,
+            x1*coef,yy1*coef
+            );
     fprintf(stderr,"%g\n%g %g\n%g\n%g %g\n%g %g\n%g %g %g\n%g\n",
-        300.0/coef,m0,r0,m1,x1,yy1,vx1,vyy1,it0,it1,ia,dt);
+            300.0/coef,m0,r0,m1,x1,yy1,vx1,vyy1,it0,it1,ia,dt);
         
     t=0.0;
     i=0;
@@ -143,41 +144,41 @@ int main(void)
         
         if(i==10){
             fprintf(stderr,"%14f:  %14g %14g    %14g %14g  %14g %14g  %14g %14g\n",
-                            t,x0,yy0,x1,yy1,vx1,vyy1,ax1,ayy1);
+                    t,x0,yy0,x1,yy1,vx1,vyy1,ax1,ayy1);
             i=0;
         }else{
             i++;
         }
         fprintf(stdout,"%g %g lineto stroke %g %g moveto \n",
-                        x1*coef,yy1*coef,x1*coef,yy1*coef);
+                x1*coef,yy1*coef,x1*coef,yy1*coef);
         t+=dt;
     }
     return(0);
 }
 /*
-45000000.0
-5.975e24 6400000
-200000
-0 7046000
-1000 0
-43600 43700 1.2
-10
+  45000000.0
+  5.975e24 6400000
+  200000
+  0 7046000
+  1000 0
+  43600 43700 1.2
+  10
 
-160e9
-2e32 1.391e6
-5.975e24
-0 152e9
-30000 0
-0 1 0
-3600
+  160e9
+  2e32 1.391e6
+  5.975e24
+  0 152e9
+  30000 0
+  0 1 0
+  3600
 
-1.8e+08
-2e+30 1.391e+06
-5.975e+24
-0 1.5e+08
-30000 0
-0 1 0
-360
+  1.8e+08
+  2e+30 1.391e+06
+  5.975e+24
+  0 1.5e+08
+  30000 0
+  0 1 0
+  360
 
 
 

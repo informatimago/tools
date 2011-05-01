@@ -22,7 +22,7 @@ BUGS
 LEGAL
     GPL
     
-    Copyright Pascal Bourguignon 2003 - 2003
+    Copyright Pascal Bourguignon 2003 - 2011
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -65,7 +65,7 @@ LEGAL
         char buffer2[BUFFER_SIZE];
         char key1[BUFFER_SIZE];
         char key2[BUFFER_SIZE];
-        short success;
+        int success;
 
         success=(NULL!=fgets(buffer1,BUFFER_SIZE,file1));
         success&=(NULL!=fgets(buffer2,BUFFER_SIZE,file2));

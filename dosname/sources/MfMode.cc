@@ -14,7 +14,7 @@ MODIFICATIONS
     
     1994-12-29 <PJB> Creation. 
 LEGAL
-    Copyright Pascal J. Bourguignon 1994 - 2001
+    Copyright Pascal J. Bourguignon 1994 - 2011
 
     GPL
 
@@ -43,111 +43,110 @@ extern "C"{
 #include BpClass_hh
 #include <BcImplementation.h>
 
-    static const char rcsident[]="$Id: MfMode.cc,v 1.1 2003/12/04 03:46:04 pjbpjb Exp $";
+static const char rcsident[]="$Id: MfMode.cc,v 1.1 2003/12/04 03:46:04 pjbpjb Exp $";
 
-    CONSTRUCTOR(MfMode)
-    {
-        BpClass_PLUG(MfMode);
-        fMode=0;
-    }//MfMode;
+CONSTRUCTOR(MfMode)
+{
+    BpClass_PLUG(MfMode);
+    fMode=0;
+}//MfMode;
     
     
-    DESTRUCTOR(MfMode)
-    {
-    }//~MfMode;
+DESTRUCTOR(MfMode)
+{
+}//~MfMode;
     
     
 // override of BpObject methods:
 
-    METHOD(MfMode,makeBrother,(void),BpObject*)
-    {
-        return(NEW(MfMode));
-    }//makeBrother;
+METHOD(MfMode,makeBrother,(void),BpObject*)
+{
+    return(NEW(MfMode));
+}//makeBrother;
     
     
-    METHOD(MfMode,printOnLevel,(FILE* file,CARD32 level),void)
-    {
-        MfMode_SUPER::printOnLevel(file,level);
-        PRINTONLEVEL(file,level,"%o",fMode,fMode);
-    }//printOnLevel;
+METHOD(MfMode,printOnLevel,(FILE* file,CARD32 level),void)
+{
+    MfMode_SUPER::printOnLevel(file,level);
+    PRINTONLEVEL(file,level,"%o",fMode,fMode);
+}//printOnLevel;
 
 // MfMode methods:
     
-    METHOD(MfMode,mode,(void),CARD16)
-    {
-        return(fMode);
-    }//mode;
+METHOD(MfMode,mode,(void),CARD16)
+{
+    return(fMode);
+}//mode;
     
     
-    METHOD(MfMode,modeSet,(CARD16 nMode),void)
-    {
-        fMode=nMode;
-    }//modeSet;
+METHOD(MfMode,modeSet,(CARD16 nMode),void)
+{
+    fMode=nMode;
+}//modeSet;
     
-    static char MfMode_stringTemplate[]="-ugtrwxrwxrwx";
+static char MfMode_stringTemplate[]="-ugtrwxrwxrwx";
     
-    METHOD(MfMode,stringValue,(void),BpString*)
-    {
-            BpString*       modeStr=NEW(BpString);
-            char            buffer[14];
-            CARD16          bit;
-            INT32           i;
+METHOD(MfMode,stringValue,(void),BpString*)
+{
+    BpString*       modeStr=NEW(BpString);
+    char            buffer[14];
+    CARD16          bit;
+    INT32           i;
         
-        switch(fMode&S_IFMT){
-        case S_IFDIR:
-            buffer[0]='d';
+    switch(fMode&S_IFMT){
+    case S_IFDIR:
+        buffer[0]='d';
+        break;
+    case S_IFLNK:
+        buffer[0]='l';
+        break;
+    default:
+        buffer[0]='-';
+        break;
+    }
+    for(i=1,bit=04000;i<13;i++,bit=(CARD16)(bit>>1)){
+        if(bit&fMode){
+            buffer[i]=MfMode_stringTemplate[i];
+        }else{
+            buffer[i]='-';
+        }
+    }
+    buffer[i]='\0';
+    modeStr->setString(buffer);
+    return(modeStr);
+}//stringValue;
+    
+    
+METHOD(MfMode,stringValueSet,(BpString* nModeStr),void)
+{
+    const char*     buffer;
+    CARD16          bit;
+    INT32           i;
+    CARD16          nMode;
+        
+    nMode=0;
+    if(nModeStr->length()==13){
+        buffer=nModeStr->string();
+        switch(buffer[0]){
+        case 'd':
+            nMode=S_IFDIR;
             break;
-        case S_IFLNK:
-            buffer[0]='l';
+        case 'l':
+            nMode=S_IFLNK;
             break;
         default:
-            buffer[0]='-';
+            nMode=S_IFREG;
             break;
         }
-        for(i=1,bit=04000;i<13;i++,bit>>=1){
-            if(bit&fMode){
-                buffer[i]=MfMode_stringTemplate[i];
-            }else{
-                buffer[i]='-';
+        for(i=1,bit=04000;i<13;i++,bit=(CARD16)(bit>>1)){
+            if(buffer[i]==MfMode_stringTemplate[i]){
+                nMode|=bit;
+            }else if(buffer[i]!='-'){
+                return;
             }
         }
-        buffer[i]='\0';
-        modeStr->setString(buffer);
-        return(modeStr);
-    }//stringValue;
-    
-    
-    METHOD(MfMode,stringValueSet,(BpString* nModeStr),void)
-    {
-            const char*     buffer;
-            CARD16          bit;
-            INT32           i;
-            CARD16          nMode;
-        
-        nMode=0;
-        if(nModeStr->length()==13){
-            buffer=nModeStr->string();
-            switch(buffer[0]){
-            case 'd':
-                nMode=S_IFDIR;
-                break;
-            case 'l':
-                nMode=S_IFLNK;
-                break;
-            default:
-                nMode=S_IFREG;
-                break;
-            }
-            for(i=1,bit=04000;i<13;i++,bit>>=1){
-                if(buffer[i]==MfMode_stringTemplate[i]){
-                    nMode|=bit;
-                }else if(buffer[i]!='-'){
-                    return;
-                }
-            }
-            fMode=nMode;
-        }
-    }//stringValueSet;
+        fMode=nMode;
+    }
+}//stringValueSet;
 
-
-//END MfMode.
+//// THE END ////

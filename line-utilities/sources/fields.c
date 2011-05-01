@@ -12,7 +12,7 @@ MODIFICATIONS
 BUGS
     Please report them to <pjb@informatimago.com>
 LEGAL
-    Copyright Pascal J. Bourguignon 2000 - 2000
+    Copyright Pascal J. Bourguignon 2000 - 2011
 
     GPL
     This file is part of the lgetvalue utility.
@@ -44,8 +44,8 @@ LEGAL
         if(field_index<=0){
             strcpy(field,record);
         }else{
-            unsigned int start=0;
-            unsigned int stop=0;
+            size_t start=0;
+            size_t stop=0;
             while(0<field_index){
                 const char* separator;
                 field_index--;
@@ -53,7 +53,7 @@ LEGAL
                 if(separator==NULL){
                     stop=strlen(record);
                 }else{
-                    stop=separator-record;
+                    stop=(size_t)(separator-record);
                 }
                 start=stop+1;
             }

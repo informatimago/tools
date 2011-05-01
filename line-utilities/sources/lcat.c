@@ -30,7 +30,7 @@ MODIFICATIONS
 BUGS
     lines from input file may be no longer than 4*BUFSIZ.
 LEGAL
-    Copyright Pascal J. Bourguignon 1993 - 1993
+    Copyright Pascal J. Bourguignon 1993 - 2011
     All rights reserved.
     This program or any part of it may not be included in any commercial 
     product without the author written permission. It may be used freely for 
@@ -53,19 +53,19 @@ LEGAL
 
 int main(int argc,char** argv)
 {
-        int             i;
-        int             ffirst;
-        int             flast;
-        int             ocount;
-        typedef struct {
-            FILE*           file;
-            char            dosep;
-            char            separator;
-        }               FDescT;
-        FDescT*         input;
-        char            buffer[linesize];
+    int             i;
+    int             ffirst;
+    int             flast;
+    int             ocount;
+    typedef struct {
+        FILE*           file;
+        char            dosep;
+        char            separator;
+    }               FDescT;
+    FDescT*         input;
+    char            buffer[linesize];
         
-    input=malloc(sizeof(FDescT)*(argc+1));
+    input=malloc(sizeof(FDescT)*(size_t)(argc+1));
     if(input==NULL){
         sprintf(buffer,"%s fatal error: allocating argument descriptors:",
                 argv[0]);
@@ -137,7 +137,7 @@ int main(int argc,char** argv)
                     input[i].file=NULL;
                     ocount--;
                 }else{
-                    int l=strlen(buffer);
+                    size_t l=strlen(buffer);
                     if(buffer[l-1]=='\n'){
                         buffer[l-1]='\0';
                     }

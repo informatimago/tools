@@ -14,7 +14,7 @@ AUTHORS
 MODIFICATIONS
     1995/10/11 <PJB> Creation.
 LEGAL
-    Copyright Pascal J. Bourguignon 1995 - 1995
+    Copyright Pascal J. Bourguignon 1995 - 2011
     All rights reserved.
     This program or any part of it may not be included in any commercial 
     product without the author written permission. It may be used freely for 

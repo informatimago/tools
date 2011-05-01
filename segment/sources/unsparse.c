@@ -19,7 +19,7 @@ BUGS
 LEGAL
     GPL
     
-    Copyright Pascal Bourguignon 2003 - 2003
+    Copyright Pascal Bourguignon 2003 - 2011
     mailto:pjb@informatimago.com
     
     This program is free software; you can redistribute it and/or
@@ -61,7 +61,7 @@ LEGAL
     {
         int    error_count=0;
         size_t total_read_size;
-        size_t read_size;
+        ssize_t read_size;
         off_t  new_position;
         size_t remain_to_read;
         unsigned char* remain_buffer;
@@ -96,8 +96,8 @@ LEGAL
                 goto abort;
             }
         }else{
-            total_read_size+=read_size;
-            remain_to_read-=read_size;
+            total_read_size=(size_t)((ssize_t)total_read_size+read_size);
+            remain_to_read=(size_t)((ssize_t)remain_to_read-read_size);
             remain_buffer+=read_size;
             if(remain_to_read<=0){
                 (*size)=total_read_size;
@@ -116,7 +116,7 @@ LEGAL
     {
         int    error_count=0;
         size_t total_write_size;
-        size_t write_size;
+        ssize_t write_size;
         off_t  new_position;
         size_t remain_to_write;
         unsigned char* remain_buffer;
@@ -157,8 +157,8 @@ LEGAL
                 goto abort;
             }
         }else{
-            total_write_size+=write_size;
-            remain_to_write-=write_size;
+            total_write_size=(size_t)((ssize_t)total_write_size+write_size);
+            remain_to_write=(size_t)((ssize_t)remain_to_write-write_size);
             remain_buffer+=write_size;
             if(remain_to_write<=0){
                 (*size)=total_write_size;
@@ -188,7 +188,7 @@ LEGAL
             perror("statfs");
             size=512;
         }else{
-            size=s.f_bsize;
+            size=(size_t)s.f_bsize;
         }
 
         fd=open(fname,O_RDWR/*|O_LARGEFILE*/,0);
@@ -228,7 +228,7 @@ LEGAL
                     goto abort;
                 }
             }
-            position+=size;
+            position=(off_t)((size_t)position+size);
         }
     abort:
         free(buffer);

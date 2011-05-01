@@ -26,7 +26,7 @@ MODIFICATIONS
     
     1994-12-25 <PJB> Creation. 
 LEGAL
-    Copyright Pascal J. Bourguignon 1994 - 2001
+    Copyright Pascal J. Bourguignon 1994 - 2011
 
     GPL
 
@@ -243,7 +243,7 @@ BpString*path=NEW(BpString);
                             dir->nameSet(entryName);
                             dir->holderSet(0,this);
                             lMode=NEW(MfMode);
-                            lMode->modeSet(status.st_mode);
+                            lMode->modeSet((CARD16)status.st_mode);
                             dir->modeSet(lMode);
                             contentSet(contentCard(),dir);
 dir->pathNameGet(path);
@@ -255,7 +255,7 @@ fprintf(stderr,"\r%c[K%s\r",0x1b,path->string());
                             fil->nameSet(entryName);
                             fil->holderSet(0,this);
                             lMode=NEW(MfMode);
-                            lMode->modeSet(status.st_mode);
+                            lMode->modeSet((CARD16)status.st_mode);
                             fil->modeSet(lMode);
                             contentSet(contentCard(),fil);
 fil->pathNameGet(path);
@@ -266,7 +266,7 @@ fprintf(stderr,"\r%c[K%s\r",0x1b,path->string());
                             fil->nameSet(entryName);
                             fil->holderSet(0,this);
                             lMode=NEW(MfMode);
-                            lMode->modeSet(status.st_mode);
+                            lMode->modeSet((CARD16)status.st_mode);
                             fil->modeSet(lMode);
                             contentSet(contentCard(),fil);
 fil->pathNameGet(path);

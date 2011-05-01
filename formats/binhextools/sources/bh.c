@@ -55,7 +55,7 @@ MODIFICATIONS
 BUGS
     bh -t  reads the whole hqx file.
 LEGAL
-    Copyright Pascal J. Bourguignon 1992 - 1993
+    Copyright Pascal J. Bourguignon 1992 - 2011
     All rights reserved.
     This program may not be included in any commercial product without the 
     author written permission. It may be used freely for any non-commercial 
@@ -139,7 +139,7 @@ PROCEDURE(main,(int argc,char** random_argv),int)
                 switch(argv[i][1]){
                 case 'c':
                     create=TRUE;
-                    j=i+1;
+                    j=(CARD16)(i+1);
                     if(j<argc){
                         fname=argv[j];
                     }else{
@@ -151,7 +151,7 @@ PROCEDURE(main,(int argc,char** random_argv),int)
                     break;
                 case 'x':
                     extract=TRUE;
-                    j=i+1;
+                    j=(CARD16)(i+1);
                     if(j<argc){
                         if(argv[j][0]!='-'){
                             fname=argv[j];
@@ -186,7 +186,7 @@ PROCEDURE(main,(int argc,char** random_argv),int)
                                     "after -c\n%s",Usage);
                     return(1);
                 }
-                j=i+1;
+                j=(CARD16)(i+1);
                 if(j<argc){
                     if(strlen((char*)(argv[j]))!=4){
                         fprintf(stderr,"### -T or -C must be followed by "
@@ -223,7 +223,7 @@ PROCEDURE(main,(int argc,char** random_argv),int)
                                     "only once\n%s",Usage);
                     return(1);
                 }
-                j=i+1;
+                j=(CARD16)(i+1);
                 if(j<argc){
                     hqxname=argv[j];
                 }else{
@@ -271,10 +271,10 @@ PROCEDURE(main,(int argc,char** random_argv),int)
         printf("fname=%s ",fname);
         printf("%s ",seven?"seven":"eight");
         if(typeSet){
-            printf("type=%08lx ",type);
+            printf("type=%08"FMT_CARD32_HEX" ",type);
         }
         if(creatorSet){
-            printf("creator=%08lx ",creator);
+            printf("creator=%08"FMT_CARD32_HEX" ",creator);
         }
     }
     if(extract){

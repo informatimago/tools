@@ -281,7 +281,7 @@ char buf[MAXSIZE];
         offset = (((long)year*365+(long)julian)*24+(long)hour)*60+(long)minute;
         difference = offset-base;
 
-        phaselength = (double)( (29*24 + 12)*60 + 44.05 );
+        phaselength = (long)((29.0*24.0+12.0)*60.0+44.05);
         phase = difference-difference/phaselength*phaselength;
         *fraction = (double)phase / (double)phaselength;
         phaselength = phaselength/4;
@@ -289,9 +289,9 @@ char buf[MAXSIZE];
         strcpy(string, phrases[phase]);
         difference = difference-difference/phaselength*phaselength;
         hourdiff = difference/60;
-        *ominute = difference-hourdiff*60;
-        *oday = hourdiff/24;
-        *ohour = hourdiff-*oday*24;
+        *ominute = (int)(difference-hourdiff*60);
+        *oday = (int)(hourdiff/24);
+        *ohour = (int)(hourdiff-*oday*24);
     } /* pom */
 
 
@@ -332,7 +332,7 @@ char buf[MAXSIZE];
     {
         int i;
 
-        i = x*xscale+0.5;
+        i = (int)(x*xscale+0.5);
         i = i+xoffset;
         return(i<1 ? 1 : i);
     }/* charpos */
@@ -375,7 +375,7 @@ char buf[MAXSIZE];
         initscr();
         clear();
         refresh();
-        namemod = strlen(name);
+        namemod = (int)strlen(name);
 
         /* 3 is # of lines used by text under moon */
         moonhgt = LINES - LOPTHT - 3;   

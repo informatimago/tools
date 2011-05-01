@@ -100,7 +100,7 @@ MODIFICATIONS
     1996/12/05 <PJB> Corrected a bug in BuildConversionTable with approx mode.
     1999/09/14 <PJB> Extracted the encodings into a separate library.
 LEGAL
-    Copyright Pascal J. Bourguignon 1991 - 1999
+    Copyright Pascal J. Bourguignon 1991 - 2011
     All Rights Reserved.
     This program may not be included in any commercial product without the 
     author written permission. It may be used freely for any non-commercial 
@@ -129,203 +129,203 @@ LEGAL
 #include <Bencoding.h>
 
 
-    static void printerr(int err)
-    {
-        fprintf(stderr,"Error: %s (%d)\n",strerror(err),err);
-    }/*printerr*/
+static void printerr(int err)
+{
+    fprintf(stderr,"Error: %s (%d)\n",strerror(err),err);
+}/*printerr*/
     
 
-    static void MakeTempName(char* src,char* temp)
-    {
-        strcpy(temp,src);
-        strcat(temp,".nema[ ]");
-    }/*MakeTempName*/
+static void MakeTempName(char* src,char* temp)
+{
+    strcpy(temp,src);
+    strcat(temp,".nema[ ]");
+}/*MakeTempName*/
     
 
-    static BOOLEAN ishexadigit(/*char*/int c)
-    {
-        return((('0'<=c)&&(c<='9'))||
-                (('a'<=c)&&(c<='f'))||(('A'<=c)&&(c<='F')));
-    }/*ishexadigit;*/
+static BOOLEAN ishexadigit(/*char*/int c)
+{
+    return((('0'<=c)&&(c<='9'))||
+           (('a'<=c)&&(c<='f'))||(('A'<=c)&&(c<='F')));
+}/*ishexadigit;*/
     
     
-    static int hexatoint(/*char*/int c)
-    {
-        if(c<='9'){
-            return(c-'0');
-        }else if(c<='F'){
-            return(c-'A'+10);
-        }else{
-            return(c-'a'+10);
-        }
-    }/*hexatoint;*/
+static int hexatoint(/*char*/int c)
+{
+    if(c<='9'){
+        return(c-'0');
+    }else if(c<='F'){
+        return(c-'A'+10);
+    }else{
+        return(c-'a'+10);
+    }
+}/*hexatoint;*/
     
 #if 0   
-    static char inttohexa(int d)
-    {
-        if(d<10){
-            return('0'+d);
-        }else{
-            return('a'+d-10);
-        }
-    }/*inttohexa;*/
+static char inttohexa(int d)
+{
+    if(d<10){
+        return('0'+d);
+    }else{
+        return('a'+d-10);
+    }
+}/*inttohexa;*/
 #endif  
 
 
-    static void usage(char* pname)
-    {
-        INT16        code;
-        INT16        col;
-        const char*  message="# Implemented codes are: ";
-        const char** codeNames=BenEncodingTableNames();
+static void usage(char* pname)
+{
+    INT16        code;
+    INT16        col;
+    const char*  message="# Implemented codes are: ";
+    const char** codeNames=BenEncodingTableNames();
 
-        fprintf(
+    fprintf(
             stderr,
             concatenate(
-                "# %s usage:\n",
-                "   %s -from code -to code ",
-                "[-a | -e [-ELR]] [-t] [-r] [-v] [-xC] < in > out \n",
-                "   %s -from code -to code ",
-                "[-a | -e [-ELR]] [-t] [-r] [-v] [-xC] file... \n",
-                "   %s -n | -m [-a | -e [-ELR]] [-t] [-r] ",
-                "[-v] [-xC] < in > out \n",
-                "   %s -n | -m [-a | -e [-ELR]] [-t] [-r] ",
-                "[-v] [-xC] file... \n",
-                "   %s -A [-t] [-r] [-v] [-xC] < in > out \n",
-                "   %s -A [-t] [-r] [-v] [-xC] file... \n",
-                "     -t   = dumps the conversion table,\n",
-                "     -a   = approximate (use it with -to ascii),\n",
-                "     -n   = -from macintosh -to next\n",
-                "     -m   = -from next -to macintosh\n",
-                "     -e   = replace missing characters in ",
-                "'to' set with their name,\n",
-                "     -xC  = replace missing characters in ",
-                "'to' set with C,\n",
-                "     -ELR = encasulate missing characters ",
-                "in 'to' set with L and R,\n",
-                "     -v   = prints on stderr the list of ",
-                "missing characters,\n",
-                "     -r   = the files are Rich Text Format files,\n",
-                "     -A   = filters all remaining 8-ths bits.\n",
-                0),pname,pname,pname,pname,pname,pname,pname);
-        code=0;
-        col=strlen(message)+strlen(codeNames[code])+2;
-        fprintf(stderr,"%s%s",message,codeNames[code]);
-        code++;
-        while(codeNames[code]!=0){
-            col+=strlen(codeNames[code])+2;
-            if(col>72){
-                fprintf(stderr,",\n    %s",codeNames[code]);
-                col-=68;
-            }else{
-                fprintf(stderr,", %s",codeNames[code]);
-            }
-            code++;
+                        "# %s usage:\n",
+                        "   %s -from code -to code ",
+                        "[-a | -e [-ELR]] [-t] [-r] [-v] [-xC] < in > out \n",
+                        "   %s -from code -to code ",
+                        "[-a | -e [-ELR]] [-t] [-r] [-v] [-xC] file... \n",
+                        "   %s -n | -m [-a | -e [-ELR]] [-t] [-r] ",
+                        "[-v] [-xC] < in > out \n",
+                        "   %s -n | -m [-a | -e [-ELR]] [-t] [-r] ",
+                        "[-v] [-xC] file... \n",
+                        "   %s -A [-t] [-r] [-v] [-xC] < in > out \n",
+                        "   %s -A [-t] [-r] [-v] [-xC] file... \n",
+                        "     -t   = dumps the conversion table,\n",
+                        "     -a   = approximate (use it with -to ascii),\n",
+                        "     -n   = -from macintosh -to next\n",
+                        "     -m   = -from next -to macintosh\n",
+                        "     -e   = replace missing characters in ",
+                        "'to' set with their name,\n",
+                        "     -xC  = replace missing characters in ",
+                        "'to' set with C,\n",
+                        "     -ELR = encasulate missing characters ",
+                        "in 'to' set with L and R,\n",
+                        "     -v   = prints on stderr the list of ",
+                        "missing characters,\n",
+                        "     -r   = the files are Rich Text Format files,\n",
+                        "     -A   = filters all remaining 8-ths bits.\n",
+                        0),pname,pname,pname,pname,pname,pname,pname);
+    code=0;
+    col=(INT16)(strlen(message)+strlen(codeNames[code])+2);
+    fprintf(stderr,"%s%s",message,codeNames[code]);
+    code++;
+    while(codeNames[code]!=0){
+        col=(INT16)((size_t)col+strlen(codeNames[code])+2);
+        if(col>72){
+            fprintf(stderr,",\n    %s",codeNames[code]);
+            col=(INT16)(col-68);
+        }else{
+            fprintf(stderr,", %s",codeNames[code]);
         }
-        fprintf(stderr,".\n");
-    }/*usage*/
+        code++;
+    }
+    fprintf(stderr,".\n");
+}/*usage*/
     
 
 
-    /* ConvertEncoding arguments */
-    static BenConversionTableT      Conversion;
-    static BOOLEAN                  rtf;
+/* ConvertEncoding arguments */
+static BenConversionTableT      Conversion;
+static BOOLEAN                  rtf;
 
 
-    static int ConvertEncoding(FILE* in,FILE* out)
-    {
-            int             c;
+static int ConvertEncoding(FILE* in,FILE* out)
+{
+    int             c;
             
-        if(rtf){
-            c=fgetc(in);
-            while(c!=EOF){
-                if(c=='\\'){
-                    c=fgetc(in);
-                    if(c=='\''){
-                            int             h,l;
-                        h=fgetc(in);
-                        l=fgetc(in);
-                        if(ishexadigit(h)&&ishexadigit(l)){
-                            c=hexatoint(h)*16+hexatoint(l);
-                            fputs(Conversion[c],out);
+    if(rtf){
+        c=fgetc(in);
+        while(c!=EOF){
+            if(c=='\\'){
+                c=fgetc(in);
+                if(c=='\''){
+                    int             h,l;
+                    h=fgetc(in);
+                    l=fgetc(in);
+                    if(ishexadigit(h)&&ishexadigit(l)){
+                        c=hexatoint(h)*16+hexatoint(l);
+                        fputs(Conversion[c],out);
                         /*** SEE: hexa escapes are not kept!
-                            buffer[i+2]=inttohexa(new/16);
-                            buffer[i+3]=inttohexa(new%16);
+                             buffer[i+2]=inttohexa(new/16);
+                             buffer[i+3]=inttohexa(new%16);
                         ***/
-                        }else{
-                            fputc('\\',out);
-                            fputc('\'',out);
-                            fputc(h,out);
-                            fputc(l,out);
-                        }
                     }else{
                         fputc('\\',out);
-                        fputc(c,out);
+                        fputc('\'',out);
+                        fputc(h,out);
+                        fputc(l,out);
                     }
                 }else{
-                    fputs(Conversion[c],out);
+                    fputc('\\',out);
+                    fputc(c,out);
                 }
-                c=fgetc(in);
-            }
-        }else{
-            c=fgetc(in);
-            while(c!=EOF){
+            }else{
                 fputs(Conversion[c],out);
-                c=fgetc(in);
             }
+            c=fgetc(in);
         }
-        return(0);
-    }/*ConvertEncoding*/
+    }else{
+        c=fgetc(in);
+        while(c!=EOF){
+            fputs(Conversion[c],out);
+            c=fgetc(in);
+        }
+    }
+    return(0);
+}/*ConvertEncoding*/
     
 
 #define BufSize (128*1024)
-    static int Filter8thBit(FILE* in,FILE* out)
-    {
-        unsigned char   buffer[BufSize];
-        int             rlength;
-        int             wlength;
-        int             i;
+static int Filter8thBit(FILE* in,FILE* out)
+{
+    unsigned char   buffer[BufSize];
+    size_t          rlength;
+    size_t          wlength;
+    int             i;
             
-        while(!feof(in)){
-            rlength=fread(buffer,1,BufSize,in);
-            i=0;
-            while(i<rlength){
-                buffer[i]=(char)(buffer[i]&0x7F);
-                i++;
-            }
-            if(rlength>0){
-                wlength=fwrite(buffer,1,(unsigned)rlength,out);
-                if(wlength!=rlength){
-                    fprintf(stderr,
+    while(!feof(in)){
+        rlength=fread(buffer,1,BufSize,in);
+        i=0;
+        while(i<rlength){
+            buffer[i]=(char)(buffer[i]&0x7F);
+            i++;
+        }
+        if(rlength>0){
+            wlength=fwrite(buffer,1,(unsigned)rlength,out);
+            if(wlength!=rlength){
+                fprintf(stderr,
                         "### Written length is different from read length:"
-                        " %d != %d\n",wlength,rlength);
-                }
+                        " %ld != %ld\n",wlength,rlength);
             }
         }
-        return(0);
-    }/*Filter8thBit*/
+    }
+    return(0);
+}/*Filter8thBit*/
 
 
 int main(int argc,char** argv,char** envp)
 {
-        FILE*               fin;
-        FILE*               fout;
-        int                 i;
-        int                 err;
-        struct stat         filestatus;
-        char                TempName[256];
-        BOOLEAN             nooption;
-        BOOLEAN             fromIsDetermined;
-        BOOLEAN             toIsDetermined;
-        BOOLEAN             eight2seven;
-        BOOLEAN             dumpTable;
-        BenModeT            mode;
-        const char*         fromname=0;
-        const char*         toname=0;
-        BenEncodingTableT*  fromtable=(BenEncodingTableT*)0;
-        BenEncodingTableT*  totable=(BenEncodingTableT*)0;
-        char                replacement[2]=" "; /* space is default replacement */
-        int (*convert)(FILE*,FILE*);
+    FILE*               fin;
+    FILE*               fout;
+    int                 i;
+    int                 err;
+    struct stat         filestatus;
+    char                TempName[256];
+    BOOLEAN             nooption;
+    BOOLEAN             fromIsDetermined;
+    BOOLEAN             toIsDetermined;
+    BOOLEAN             eight2seven;
+    BOOLEAN             dumpTable;
+    BenModeT            mode;
+    const char*         fromname=0;
+    const char*         toname=0;
+    BenEncodingTableT*  fromtable=(BenEncodingTableT*)0;
+    BenEncodingTableT*  totable=(BenEncodingTableT*)0;
+    char                replacement[2]=" "; /* space is default replacement */
+    int (*convert)(FILE*,FILE*);
         
     rtf=FALSE;
     nooption=TRUE;
@@ -369,7 +369,7 @@ int main(int argc,char** argv,char** envp)
                 fromIsDetermined=TRUE;
             }else{
                 fprintf(stderr,
-                    "### A code name is expected following -from option.\n");
+                        "### A code name is expected following -from option.\n");
                 usage(argv[0]);
                 return(1);
             }
@@ -387,7 +387,7 @@ int main(int argc,char** argv,char** envp)
                 toIsDetermined=TRUE;
             }else{
                 fprintf(stderr,
-                    "### A code name is expected following -to option.\n");
+                        "### A code name is expected following -to option.\n");
                 usage(argv[0]);
                 return(1);
             }
@@ -412,7 +412,7 @@ int main(int argc,char** argv,char** envp)
     if(eight2seven){
         if(fromIsDetermined||toIsDetermined||(mode!=BenMode_Normal)){
             fprintf(stderr,
-                "### -A option is incompatible with -from, -to, -a and -e\n");
+                    "### -A option is incompatible with -from, -to, -a and -e\n");
             usage(argv[0]);
             return(1);
         }
@@ -444,15 +444,15 @@ int main(int argc,char** argv,char** envp)
             fin=fopen(argv[i],"r");
             if(fin==NULL){
                 fprintf(stderr,
-                    "### I cannot open the input file \"%s\";"
-                    " skipping it.\n",argv[i]);
+                        "### I cannot open the input file \"%s\";"
+                        " skipping it.\n",argv[i]);
             }else{
                 MakeTempName(argv[i],TempName);
                 fout=fopen(TempName,"w");
                 if(fout==NULL){
                     fprintf(stderr,
-                        "### I cannot open the output file \"%s\";"
-                        " skipping \"%s\".\n",TempName,argv[i]);
+                            "### I cannot open the output file \"%s\";"
+                            " skipping \"%s\".\n",TempName,argv[i]);
                     fclose(fin);
                 }else{
                     err=convert(fin,fout);
@@ -465,32 +465,33 @@ int main(int argc,char** argv,char** envp)
                             if(err==0){
                                 err=stat("temp[nema]",&filestatus);
                                 if(err==0){
-                                    chown(argv[i],filestatus.st_uid,
-                                                        filestatus.st_gid);
+                                    int r=chown(argv[i],filestatus.st_uid,
+                                                filestatus.st_gid);
+                                    (void)r;
                                     chmod(argv[i],filestatus.st_mode);
                                 }
                                 unlink("temp[nema]");
                             }else{
                                 perror("Error while linking: ");
                                 fprintf(stderr,
-                                    "### I cannot link the output file "
-                                    "\"%s\" to the input file \"%s\"; "
-                                    "skipping it.\n",TempName,argv[i]);
+                                        "### I cannot link the output file "
+                                        "\"%s\" to the input file \"%s\"; "
+                                        "skipping it.\n",TempName,argv[i]);
                                 rename("temp[nema]",argv[i]);
                             }
                         }else{
                             printerr(err);
                             fprintf(stderr,
-                                "### I cannot rename the input file \"%s\";"
-                                " skipping it.\n",argv[i]);
+                                    "### I cannot rename the input file \"%s\";"
+                                    " skipping it.\n",argv[i]);
                         }
                         unlink(TempName);
                     }else{
                         fprintf(stderr,"error after convert\n");
                         printerr(err);
                         fprintf(stderr,
-                            "### Error while converting the input file "
-                            "\"%s\"; skipping it.\n",argv[i]);
+                                "### Error while converting the input file "
+                                "\"%s\"; skipping it.\n",argv[i]);
                     }
                 }
             }
@@ -501,12 +502,12 @@ int main(int argc,char** argv,char** envp)
         if(err!=0){
             printerr(err);
             fprintf(stderr,
-                "### Error while converting the input file \"%s\";"
-                " skipping it.\n","stdin");
+                    "### Error while converting the input file \"%s\";"
+                    " skipping it.\n","stdin");
         }
     }
     return(0);
 }/*main*/
     
 
-/*** encoding.c                       --                     --          ***/
+/**** THE END ****/

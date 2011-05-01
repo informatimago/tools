@@ -30,7 +30,7 @@ BUGS
 LEGAL
 
     GPL
-    Copyright Pascal J. Bourguignon 1993 - 2002
+    Copyright Pascal J. Bourguignon 1993 - 2011
 
     This file is part of PJB-Tools.
 
@@ -54,33 +54,33 @@ LEGAL
 #include <errno.h>
 
     
-    static int copy(FILE* input,FILE* output)
-    {
-            char            buffer[16*1024];
-            char*           p;
-            size_t          rsize;
-            size_t          wsize;
+static int copy(FILE* input,FILE* output)
+{
+    char            buffer[16*1024];
+    char*           p;
+    size_t          rsize;
+    size_t          wsize;
 #define buffersize  (sizeof(buffer)/sizeof(char))
-        errno=0;
+    errno=0;
+    rsize=fread(buffer,sizeof(char),buffersize,input);
+    while(rsize>0){
+        wsize=0;
+        p=buffer;
+        do{
+            p+=(wsize/sizeof(char));
+            rsize-=wsize;
+            wsize=fwrite(buffer,sizeof(char),rsize,output);
+        }while(wsize<rsize);
         rsize=fread(buffer,sizeof(char),buffersize,input);
-        while(rsize>0){
-            wsize=0;
-            p=buffer;
-            do{
-                p+=(wsize/sizeof(char));
-                rsize-=wsize;
-                wsize=fwrite(buffer,sizeof(char),rsize,output);
-            }while(wsize<rsize);
-            rsize=fread(buffer,sizeof(char),buffersize,input);
-        }
-        return(errno);
-    }/*copy.*/
+    }
+    return(errno);
+}/*copy.*/
     
     
 int main(int argc,char** argv)
 {
-        char        c;
-        int         count;
+    char        c;
+    int         count;
         
     if(argc!=2){
         fprintf(stderr,"Usage:\n\t%s <skipcount>\n",argv[0]);
@@ -88,11 +88,10 @@ int main(int argc,char** argv)
     }
     count=atoi(argv[1]);
     while(count>0){
-        c=getchar();
+        c=(char)getchar();
         count--;
     }
     return(copy(stdin,stdout));
-}/*main.*/
+}/*main*/
 
-
-/*** binskip.c                        -- 2003-12-02 13:21:04 -- pascal   ***/
+/**** THE END ****/

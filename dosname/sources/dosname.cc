@@ -20,7 +20,7 @@ MODIFICATIONS
     1995-01-01 <PJB> Creation.
 BUGS
 LEGAL
-    Copyright Pascal J. Bourguignon 1995 - 2001
+    Copyright Pascal J. Bourguignon 1995 - 2011
 
     GPL
 
@@ -53,156 +53,156 @@ extern "C"{
 #include <BcImplementation.h>
 
 
-    const char*     pname;
+const char*     pname;
 
 /*
-    makeDosName (from unix to dos)
+  makeDosName (from unix to dos)
     
-    Load the name conversion table.
-    If the curUnixName is in the table, 
-    then
-        use the dosName in the table;
-    else 
-        Analyze curUnixName with the following grammar :
+  Load the name conversion table.
+  If the curUnixName is in the table, 
+  then
+  use the dosName in the table;
+  else 
+  Analyze curUnixName with the following grammar :
         
-            curUnixName     ::= [ dot ] wordSeq { dot wordSeq } .
-            wordSeq      ::= capWord { capWord } .
-            capWord      ::= {initers}{capletters}
-                                    {smallletters|digit|trailers} .
+  curUnixName     ::= [ dot ] wordSeq { dot wordSeq } .
+  wordSeq      ::= capWord { capWord } .
+  capWord      ::= {initers}{capletters}
+  {smallletters|digit|trailers} .
             
-            capletters    ::= ABCDEFGHIJKLMNOPQRSTUVWXYZ
-            smallletters  ::= abcdefghijklmnopqrstuvwxyz
-            digit        ::= 0123456789
-            initers      ::=  !"#&')*+=>?]^`|}
-            trailers     ::=  $%(,-/:;<@[\_{~
+  capletters    ::= ABCDEFGHIJKLMNOPQRSTUVWXYZ
+  smallletters  ::= abcdefghijklmnopqrstuvwxyz
+  digit        ::= 0123456789
+  initers      ::=  !"#&')*+=>?]^`|}
+  trailers     ::=  $%(,-/:;<@[\_{~
 
-        If the curUnixName is composed of more than two wordSeq
-        then
-            while the length of the wordSeq but the last is more 
-                    than eight
-            do
-                reduce the length of each of the wordSeq but the last
-                    of one, starting
-            endwhile
-        else
-            if the length of the first wordSeq is more than eight
-            then
-                reduce the length of the first wordSeq to eight
-            endif
-        endif
-        if the length of the last wordSeq is more than three
-        then
-            reduce the length of the last wordSeq to three
-        endif
+  If the curUnixName is composed of more than two wordSeq
+  then
+  while the length of the wordSeq but the last is more 
+  than eight
+  do
+  reduce the length of each of the wordSeq but the last
+  of one, starting
+  endwhile
+  else
+  if the length of the first wordSeq is more than eight
+  then
+  reduce the length of the first wordSeq to eight
+  endif
+  endif
+  if the length of the last wordSeq is more than three
+  then
+  reduce the length of the last wordSeq to three
+  endif
         
-        set the name to the concatenation of the wordSeq but the last
-        removing initers and trailers.
-        set the extension to the last wordSeq.
-        set the name and extension to lowercase.
-        set the dosName to the concatenation of name dot and extension.
-        if the dosName alreaydy exists whether in the name table, or in
-            already converted dosName, 
-        then 
-            increment the name part
-        endif
-    endif
+  set the name to the concatenation of the wordSeq but the last
+  removing initers and trailers.
+  set the extension to the last wordSeq.
+  set the name and extension to lowercase.
+  set the dosName to the concatenation of name dot and extension.
+  if the dosName alreaydy exists whether in the name table, or in
+  already converted dosName, 
+  then 
+  increment the name part
+  endif
+  endif
 */
 
 
     
-    void test1(INT32 argc,char** argv)
-    {
-            INT32       i;
-            Renamer*    un;
-            FILE*       fCache;
-            MfMode*     mode;
+void test1(INT32 argc,char** argv)
+{
+    INT32       i;
+    Renamer*    un;
+    FILE*       fCache;
+    MfMode*     mode;
         
-        mode=NEW(MfMode);
-        mode->modeSet(00664);
+    mode=NEW(MfMode);
+    mode->modeSet(00664);
         
-        un=NEW(Renamer);
-        un->retain();
+    un=NEW(Renamer);
+    un->retain();
         
-        fCache=fopen(".msdosnames","r");
-        if(fCache!=NULL){
-            un->loadUnixCache(fCache);
-            fclose(fCache);
-        }
+    fCache=fopen(".msdosnames","r");
+    if(fCache!=NULL){
+        un->loadUnixCache(fCache);
+        fclose(fCache);
+    }
         
         
-        i=1;
-        while(i<argc){
-            un->setUnixName(argv[i],mode);
-            printf("%-16s%s\n",un->dosName(),un->unixName());
-            BpObject_ProcessDeletePool();
-            i++;
-        }
-    
-        fCache=fopen(".msdosnames","w");
-        if(fCache!=NULL){
-            un->saveDosCache(fCache);
-            fclose(fCache);
-        }
-        un->release();
+    i=1;
+    while(i<argc){
+        un->setUnixName(argv[i],mode);
+        printf("%-16s%s\n",un->dosName(),un->unixName());
         BpObject_ProcessDeletePool();
-    }//test1;
+        i++;
+    }
+    
+    fCache=fopen(".msdosnames","w");
+    if(fCache!=NULL){
+        un->saveDosCache(fCache);
+        fclose(fCache);
+    }
+    un->release();
+    BpObject_ProcessDeletePool();
+}//test1;
 
 
-    void usage(const char* upname)
-    {
-        int plength=strlen(upname);
-        fprintf(stderr,"%s usage:\n"
-        "  %s -d|--to-dos|-u|--to-unix [-s|--silent] [-f|--force]\n"
-        "  %*s [-c|--copy|-l|--hard-link|-y|--sym-link] [-p|--print]\n"
-        "  %*s <from-dir> <to-dir>\n"
-        "\t  -d --to-dos       rename from UNIX names to DOS  names.\n"
-        "\t  -u --to-unix      rename from DOS  names to UNIX names.\n"
-        "\t  -c --copy         make copies of files (default).\n"
-        "\t  -h --hard-link    make hard links of files.\n"
-        "\t  -y --sym-link     make symbolic links of files.\n"
-        "\t  -p --print        write the commands instead of executing them.\n"
-        "\t  -s --silent       silent.\n"
-        "\t  -f --force        force.\n"
-        "  When making copies, the UNIX sym-links are converted to or from \n"
-        "  mere DOS files containing the linked path. When making links \n"
-        "  (either hard or symbolic), the sym-links are linked as well as \n"
-        "  plain files. In this case sym-links are not kept on a DOS FS.\n"
-        ,upname,upname,plength," ",plength," ");
-    }//usage;
+void usage(const char* upname)
+{
+    int plength=(int)strlen(upname);
+    fprintf(stderr,"%s usage:\n"
+            "  %s -d|--to-dos|-u|--to-unix [-s|--silent] [-f|--force]\n"
+            "  %*s [-c|--copy|-l|--hard-link|-y|--sym-link] [-p|--print]\n"
+            "  %*s <from-dir> <to-dir>\n"
+            "\t  -d --to-dos       rename from UNIX names to DOS  names.\n"
+            "\t  -u --to-unix      rename from DOS  names to UNIX names.\n"
+            "\t  -c --copy         make copies of files (default).\n"
+            "\t  -h --hard-link    make hard links of files.\n"
+            "\t  -y --sym-link     make symbolic links of files.\n"
+            "\t  -p --print        write the commands instead of executing them.\n"
+            "\t  -s --silent       silent.\n"
+            "\t  -f --force        force.\n"
+            "  When making copies, the UNIX sym-links are converted to or from \n"
+            "  mere DOS files containing the linked path. When making links \n"
+            "  (either hard or symbolic), the sym-links are linked as well as \n"
+            "  plain files. In this case sym-links are not kept on a DOS FS.\n"
+            ,upname,upname,plength," ",plength," ");
+}//usage;
 
 
-    void check_direction_set(BOOLEAN set)
-    {
-        if(set){
-            fprintf(stderr,"%s: only one of -d, -u, --to-dos, or --to-unix "
-                    "may be specified.\n",pname);
-            usage(pname);
-            exit(1);
-        }
-    }//check_direction_set;
+void check_direction_set(BOOLEAN set)
+{
+    if(set){
+        fprintf(stderr,"%s: only one of -d, -u, --to-dos, or --to-unix "
+                "may be specified.\n",pname);
+        usage(pname);
+        exit(1);
+    }
+}//check_direction_set;
 
 
-    void check_action_set(BOOLEAN set)
-    {
-        if(set){
-            fprintf(stderr,"%s: only one of -c, -y, -h, --copy, "
-                    "--sym-link, or --hard-link may be specified.\n",pname);
-            usage(pname);
-            exit(1);
-        }
-    }//check_action_set;
+void check_action_set(BOOLEAN set)
+{
+    if(set){
+        fprintf(stderr,"%s: only one of -c, -y, -h, --copy, "
+                "--sym-link, or --hard-link may be specified.\n",pname);
+        usage(pname);
+        exit(1);
+    }
+}//check_action_set;
 
 
-    static char* basename(char* path)
-    {
-        char* result=strrchr(path,'/');
-        if(result==0){
-            result=path;
-        }else{
-            result++;
-        }
-        return(result);
-    }//basename;
+static char* dosname_basename(char* path)
+{
+    char* result=strrchr(path,'/');
+    if(result==0){
+        result=path;
+    }else{
+        result++;
+    }
+    return(result);
+}//dosname_basename;
 
 
 int main(INT32 argc,char** argv)
@@ -223,8 +223,8 @@ int main(INT32 argc,char** argv)
     action_t        action=action_copy;
     int             i;
 
-    pname=basename(argv[0]);
-    plength=strlen(pname);
+    pname=dosname_basename(argv[0]);
+    plength=(int)strlen(pname);
     i=1;
     while(i<argc){
         if(strcmp(argv[i],"--help")==0){
@@ -345,6 +345,4 @@ int main(INT32 argc,char** argv)
 }//main;
 
 
-
-
-/*** dosname.cc                       -- 2003-12-01 05:11:10 -- pascal   ***/
+//// THE END ////

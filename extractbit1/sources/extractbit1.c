@@ -18,7 +18,7 @@ BUGS
 LEGAL
     GPL
     
-    Copyright Pascal Bourguignon 1999 - 1999
+    Copyright Pascal Bourguignon 1999 - 2011
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -38,19 +38,20 @@ LEGAL
     
 #include <stdio.h>
 
-    static void extractbit1(FILE* in,FILE* out)
-    {
-        char    outbyte;
-        char    inbyte;
-        int     i;
-        while(!feof(in)){
-            for(i=0;i<8;i++){
-                fread(&inbyte,1,1,in);
-                outbyte=(outbyte<<1)|(inbyte&1);
-            }
-            fwrite(&outbyte,1,1,out);
+static void extractbit1(FILE* in,FILE* out)
+{
+    char    outbyte;
+    char    inbyte;
+    int     i;
+    int r;
+    while(!feof(in)){
+        for(i=0;i<8;i++){
+            r=(int)fread(&inbyte,1,1,in);
+            outbyte=(char)((outbyte<<1)|(inbyte&1));
         }
-    }/*extractbit1*/
+        r=(int)fwrite(&outbyte,1,1,out);
+    }
+}/*extractbit1*/
 
 int main(void)
 {
@@ -59,4 +60,4 @@ int main(void)
 }/*main*/
 
 
-/*** extractbit1.c                    -- 2003-12-02 13:14:23 -- pascal   ***/
+/**** THE EN D****/

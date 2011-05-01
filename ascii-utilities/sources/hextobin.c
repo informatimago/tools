@@ -34,7 +34,7 @@ MODIFICATIONS
     Added RCS keywords.
 
 LEGAL
-    Copyright Pascal J. Bourguignon 1993 - 1993
+    Copyright Pascal J. Bourguignon 1993 - 2011
     All rights reserved.
     This program or any part of it may not be included in any commercial 
     product without the author written permission. It may be used freely for 
@@ -77,7 +77,7 @@ LEGAL
             c2=hexdigit(c);
             
             if((c1>=0)&&(c2>=0)){
-                buffer[i]=(c1<<4)|c2;
+                buffer[i]=(CARD8)((c1<<4)|c2);
                 i++;
             }else{
                 return(i);
@@ -90,25 +90,25 @@ LEGAL
 int main(int argc,char** argv)
 {
         CARD8       buffer[16*1024];
-        INT32       rsize;
-        INT32       wsize;
+        size_t      rsize;
+        size_t      wsize;
         INT32       isize;
     
     isize=0;
-    rsize=loadhexwords(stdin,buffer,sizeof(buffer)/sizeof(CARD8));
+    rsize=(size_t)loadhexwords(stdin,buffer,sizeof(buffer)/sizeof(CARD8));
     while(rsize>0){
-        isize+=rsize;
+        isize+=(INT32)rsize;
         wsize=fwrite(buffer,1,(unsigned)rsize,stdout);
         if(wsize!=rsize){
             fprintf(stderr,"%s error: write count (%ld) differ read "
                             "count (%ld).\n",argv[0],wsize,rsize);
             return(1);
         }
-        rsize=loadhexwords(stdin,buffer,sizeof(buffer)/sizeof(CARD8));
+        rsize=(size_t)loadhexwords(stdin,buffer,sizeof(buffer)/sizeof(CARD8));
     }
     if(!feof(stdin)){
         fprintf(stderr,"%s error: invalid character in input stream\n"
-                    "\t%ld bytes read.\n",argv[0],isize);
+                "\t%"FMT_INT32" bytes read.\n",argv[0],isize);
         return(1); 
     }
     return(0);

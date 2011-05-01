@@ -89,7 +89,7 @@ MODIFICATIONS
     Added RCS keywords.
 
 LEGAL
-    Copyright Pascal J. Bourguignon 1990 - 1993
+    Copyright Pascal J. Bourguignon 1990 - 2011
     All rights reserved.
     This program or any part of it may not be included in any commercial 
     product without the author written permission. It may be used freely for 
@@ -110,7 +110,7 @@ LEGAL
 
 
 /*
-*/
+ */
 
 #define     ASCII_BS    (8)
 #define     ASCII_LF    (10)
@@ -131,397 +131,312 @@ LEGAL
 #define csIbmpc         (5)
 
 
-#if 0
-        /* not used yet */
 
-    static const char* Next_to_Macintosh[256]=
-        {
-            " ","!","\"","#","$","%","&","'","(",")","*","+",",","-",".","/",
-            "0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?",
-            "@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O",
-            "P","Q","R","S","T","U","V","W","X","Y","Z","[","\\","]","^","_",
-            "`","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o",
-            "p","q","r","s","t","u","v","w","x","y","z","{","|","}","~","",
-            "Ê","Ë","ç","å","Ì","Â€","Â","Â‚","é","Âƒ","æ","è","í","ê","ë","ì",
-            ".","Â„","ñ","î","ï","Í","Â…","ô","ò","ó","Â†",".",".","µ",".","Ö",
-            "©","Á","¢","£","Ú","´","Ä","¤","Û","'","Ò","Ç","Ü","İ","Ş","ß",
-            "¨","Ğ"," ","à","á",".","¦","¥","â","ã","Ó","È","É","ä","Â","À",
-            ".","Ô","Õ","ö","÷","ø","ù","ú","¬",".","û","ü",".","ı","ş","ÿ",
-            "Ñ","±",".",".",".","Âˆ","Â‡","Â‰","Â‹","ÂŠ","ÂŒ","Â","Â","Â","Â","Â‘",
-            "Â“","®","Â’","»","Â”","Â•","¶","Â–",".","¯","Î","¼","Â˜","Â—","Â™","Â›",
-            "Âš","¾","Â","Âœ","Â","õ","ÂŸ",".",".","¿","Ï","§",".","Ø",".","."
-        };
-
-    static const char*       Next_to_Macintosh_Approximative[256]=
-        {
-            " ","!","\"","#","$","%","&","'","(",")","*","+",",","-",".","/",
-            "0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?",
-            "@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O",
-            "P","Q","R","S","T","U","V","W","X","Y","Z","[","\\","]","^","_",
-            "`","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o",
-            "p","q","r","s","t","u","v","w","x","y","z","{","|","}","~","",
-            "Ê","Ë","ç","å","Ì","Â€","Â","Â‚","é","Âƒ","æ","è","í","ê","ë","ì",
-            "D","Â„","ñ","î","ï","Í","Â…","ô","ò","ó","Â†","Y","p","µ","x","Ö",
-            "©","Á","¢","£","Ú","´","Ä","¤","Û","'","Ò","Ç","Ü","İ","Ş","ß",
-            "¨","Ğ"," ","à","á","|","¦","¥","â","ã","Ó","È","É","ä","Â","À",
-            "1","Ô","Õ","ö","÷","ø","ù","ú","¬","2","û","ü","3","ı","ş","ÿ",
-            "Ñ","±","1/4","1/2","3/4","Âˆ","Â‡","Â‰","Â‹","ÂŠ","ÂŒ","Â","Â","Â","Â","Â‘",
-            "Â“","®","Â’","»","Â”","Â•","¶","Â–","L","¯","Î","¼","Â˜","Â—","Â™","Â›",
-            "Âš","¾","Â","Âœ","Â","õ","ÂŸ","y","l","¿","Ï","§","P","Ø"," "," "
-        };
-
-    static const char*       Macintosh_to_Next[256]=
-        {
-            "\000","\001","\002","\003","\004","\005","\006","\007",
-            "\010","\011","\012","\013","\014","\015","\016","\017",
-            "\020","\021","\022","\023","\024","\025","\026","\027",
-            "\030","\031","\032","\033","\034","\035","\036","\037",
-            " ","!","\"","#","$","%","&","'","(",")","*","+",",","-",".","/",
-            "0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?",
-            "@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O",
-            "P","Q","R","S","T","U","V","W","X","Y","Z","[","\\","]","^","_",
-            "`","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o",
-            "p","q","r","s","t","u","v","w","x","y","z","{","|","}","~","",
-            "Â…","Â†","Â‡","Â‰","Â‘","Â–","Âš","Ö","Õ","×","Ù","Ø","Ú","Û","İ","Ü",
-            "Ş","ß","â","à","ä","å","ç","í","ì","î","ğ","ï","ó","ò","ô","ö",
-            "²","Ê","¢","£","§","·","¶","û","°"," ",NIL,"Â","È",NIL,"á","é",
-            NIL,"Ñ",NIL,NIL,"¥","Â","æ",NIL,NIL,NIL,NIL,"ã","ë",NIL,"ñ","ù",
-            "¿","¡","¾",NIL,"¦",NIL,NIL,"«","»","¼","Â€","Â","Â„","Â•","ê","ú",
-            "±","Ğ","ª","º","`","'","ÂŸ",NIL,"ı",NIL,"¤","¨","¬","­","®","¯",
-            "³","´","¸","¹","½","Âƒ","ÂŠ","Â‚","Â‹","Âˆ","Â","Â","Â","ÂŒ","Â“","Â”",
-            NIL,"Â’","Â˜","Â™","Â—","õ","Ã","Ä","Å","Æ","Ç","Ê","Ë","Í","Î","Ï"
-        };
-
-    static const char*       Macintosh_to_Next_Approximative[256]=
-        {
-            "\000","\001","\002","\003","\004","\005","\006","\007",
-            "\010","\011","\012","\013","\014","\015","\016","\017",
-            "\020","\021","\022","\023","\024","\025","\026","\027",
-            "\030","\031","\032","\033","\034","\035","\036","\037",
-            " ","!","\"","#","$","%","&","'","(",")","*","+",",","-",".","/",
-            "0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?",
-            "@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O",
-            "P","Q","R","S","T","U","V","W","X","Y","Z","[","\\","]","^","_",
-            "`","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o",
-            "p","q","r","s","t","u","v","w","x","y","z","{","|","}","~","",
-            "Â…","Â†","Â‡","Â‰","Â‘","Â–","Âš","Ö","Õ","×","Ù","Ø","Ú","Û","İ","Ü",
-            "Ş","ß","â","à","ä","å","ç","í","ì","î","ğ","ï","ó","ò","ô","ö",
-            "²","Ê","¢","£","§","·","¶","û","°"," ","TM","Â","È","#","á","é",
-            "infinity","Ñ","<=",">=","¥","Â","æ","SIGMA",
-            "PI","pi","Intergral","ã","ë","OMEGA","ñ","ù",
-            "¿","¡","¾","Root","¦","Approximative","DELTA","«",
-            "»","¼","Â€","Â","Â„","Â•","ê","ú",
-            "±","Ğ","ª","º","`","'","ÂŸ","<>","ı","Y","¤","¨","¬","­","®","¯",
-            "³","´","¸","¹","½","Âƒ","ÂŠ","Â‚","Â‹","Âˆ","Â","Â","Â","ÂŒ","Â“","Â”",
-            "Apple","Â’","Â˜","Â™","Â—","õ","Ã","Ä","Å","Æ","Ç","Ê","Ë","Í","Î","Ï"
-        };
-
-
-
-#endif
-
-    typedef char        SmallStringT[4];
+typedef char        SmallStringT[4];
     
-    SmallStringT    linefeed[5/* toMac..toNone */]={{ASCII_CR,0},{ASCII_LF,0},{ASCII_CR,ASCII_LF,0},{ASCII_LF,ASCII_CR,0},{0}};
-    BOOLEAN         removebs;
-    BOOLEAN         removedel;
-    INT32           converto;
+SmallStringT    linefeed[5/* toMac..toNone */]={{ASCII_CR,0},{ASCII_LF,0},{ASCII_CR,ASCII_LF,0},{ASCII_LF,ASCII_CR,0},{0}};
+BOOLEAN         removebs;
+BOOLEAN         removedel;
+INT32           converto;
 
+
+#if 0    
+static INT32 skip(char* line,INT32 current)
+{
+    INT32           count;
     
-    static INT32 skip(char* line,INT32 current)
-    {
-            INT32           count;
-    
-        count=0;
-        while((current>=0)&&((removebs&&(line[current]==ASCII_BS))
-                            ||(removedel&&(line[current]==ASCII_DEL)))){
+    count=0;
+    while((current>=0)&&((removebs&&(line[current]==ASCII_BS))
+                         ||(removedel&&(line[current]==ASCII_DEL)))){
+        current--;
+        count++;
+    }
+    while((current>=0)&&(count>0)){
+        /* the first time, line[current]!=ASCII_BS */
+        if((removebs&&(line[current]==ASCII_BS))
+           ||(removedel&&(line[current]==ASCII_DEL))){
+            current=skip(line,current);
+        }else{
             current--;
-            count++;
+            count--;
         }
-        while((current>=0)&&(count>0)){
-            /* the first time, line[current]!=ASCII_BS */
-            if((removebs&&(line[current]==ASCII_BS))
-                            ||(removedel&&(line[current]==ASCII_DEL))){
-                current=skip(line,current);
-            }else{
-                current--;
-                count--;
-            }
-        }
-        return(current);
-    }/*skip*/
+    }
+    return(current);
+}/*skip*/
+#endif
     
 #if 0    
-    static INT32 old_copytoend(char* line,INT32 length)
-        /*
-            POST:       for each i in copytoend(@@line,length,count) 
-                        to length-1, line[i]#ASCII_BS
-        */
-    {
-            INT32           current;
-            INT32           destination;
+static INT32 old_copytoend(char* line,INT32 length)
+/*
+  POST:       for each i in copytoend(@@line,length,count) 
+  to length-1, line[i]#ASCII_BS
+*/
+{
+    INT32           current;
+    INT32           destination;
         
-        destination=length;
-        current=length-1;
-        while(current>=0){
-            if((removebs&&(line[current]==ASCII_BS))
-            ||(removedel&&(line[current]==ASCII_DEL))){
-                current=skip(line,current);
-            }else{
-                destination--;
-                line[destination]=line[current/* current-1 ???? */];
-                current--;
-            }
+    destination=length;
+    current=length-1;
+    while(current>=0){
+        if((removebs&&(line[current]==ASCII_BS))
+           ||(removedel&&(line[current]==ASCII_DEL))){
+            current=skip(line,current);
+        }else{
+            destination--;
+            line[destination]=line[current/* current-1 ???? */];
+            current--;
         }
-        return(destination);
-    }/*copytoend*/
+    }
+    return(destination);
+}/*copytoend*/
 #endif    
 
-    static INT32 copytobegin(char* line,INT32 length)
-        /*
-            POST:   for each i in 0 to copytobegin(@@line,length,count)-1, 
-                        line[i]#ASCII_BS
-        */
-    {
-            INT32           current;
-            INT32           destination;
+static INT32 copytobegin(char* line,INT32 length)
+/*
+  POST:   for each i in 0 to copytobegin(@@line,length,count)-1, 
+  line[i]#ASCII_BS
+*/
+{
+    INT32           current;
+    INT32           destination;
     
-        current=0;
-        destination=0;
-        while(current<length){
-            if((removebs&&(line[current]==ASCII_BS))
-            ||(removedel&&(line[current]==ASCII_DEL))){
-                if(destination>0){
-                    destination--;
-                }
-            }else{
-                line[destination]=line[current];
-                destination++;
+    current=0;
+    destination=0;
+    while(current<length){
+        if((removebs&&(line[current]==ASCII_BS))
+           ||(removedel&&(line[current]==ASCII_DEL))){
+            if(destination>0){
+                destination--;
             }
-            current++;
-        }   
-        return(destination);
-    }/*copytobegin*/
+        }else{
+            line[destination]=line[current];
+            destination++;
+        }
+        current++;
+    }   
+    return(destination);
+}/*copytobegin*/
     
 
 #define     BufSize     (128*1024)
         
-    static char            inbuf[BufSize];
-    static char            outbuf[BufSize];
-    static CARD32          inmark;
-    static CARD32          inlen;
-    static CARD32          outlen;
+static char            inbuf[BufSize];
+static char            outbuf[BufSize];
+static CARD32          inmark;
+static CARD32          inlen;
+static CARD32          outlen;
     
 
-    static void initbufs(void)
-    {
-        inmark=0;
-        inlen=0;
-        outlen=0;
-    }/*initbufs*/
+static void initbufs(void)
+{
+    inmark=0;
+    inlen=0;
+    outlen=0;
+}/*initbufs*/
 
     
-    static INT32 getline(FILE* in,char** line,INT32* len)
-        /*
-            PRE:        NOT feof(in) OR (inmark<inlen)
-            POST:       *line points to the first character of the next line.
-                        *len is the number of character in this next line.
-        */
-    {
-            INT32           start;
-            INT32           err;
+static INT32 lc_getline(FILE* in,char** line,INT32* len)
+/*
+  PRE:        NOT feof(in) OR (inmark<inlen)
+  POST:       *line points to the first character of the next line.
+  *len is the number of character in this next line.
+  */
+{
+    INT32           start;
+    INT32           err;
             
-        start=inmark;
-        *line=inbuf+inmark;
-        while((inmark<inlen)&&(inbuf[inmark]!=ASCII_CR)
-                &&(inbuf[inmark]!=ASCII_LF)){
-            inmark++;
-        }
-        if(inmark>=inlen){
-            inlen-=start;
+    start=(INT32)inmark;
+    *line=inbuf+inmark;
+    while((inmark<inlen)&&(inbuf[inmark]!=ASCII_CR)
+          &&(inbuf[inmark]!=ASCII_LF)){
+        inmark++;
+    }
+    if(inmark>=inlen){
+        inlen-=(CARD32)start;
         /* inlen = number of byte remaining in the buffer ; inlen << BufSize */
-            if(inlen>0){
-                strncpy(inbuf,inbuf+start,inlen);
-            }
-            clearerr(in);
-            inlen+=fread(inbuf+inlen,1,BufSize-inlen,in);
-            err=ferror(in);
-            if(err!=0){
-                fprintf(stderr,"error in getline\n");
-                return(err);
-            }
-            inmark=0;
-            start=inmark;
-            *line=inbuf;
-            while((inmark<inlen)&&(inbuf[inmark]!=ASCII_CR)
-                    &&(inbuf[inmark]!=ASCII_LF)){
-                inmark++;
-            }
+        if(inlen>0){
+            strncpy(inbuf,inbuf+start,inlen);
         }
-        *len=inmark-start;
-        linefeed[toNone][0]=inbuf[inmark];
-        linefeed[toNone][1]=inbuf[inmark+1];
-        if(inmark+1<inlen){
-            if(inbuf[inmark]==ASCII_CR){
-                if(inbuf[inmark+1]==ASCII_LF){
-                    inmark+=2;
-                    linefeed[toNone][2]=0;
-                }else{
-                    inmark+=1;
-                    linefeed[toNone][1]=0;
-                }
-            }else if(inbuf[inmark]==ASCII_LF){
-                if(inbuf[inmark+1]==ASCII_CR){
-                    inmark+=2;
-                    linefeed[toNone][2]=0;
-                }else{
-                    inmark+=1;
-                    linefeed[toNone][1]=0;
-                }
-            }else{
-                /* should not occur ?!? */
-                linefeed[toNone][2]=0;
-            }
-        }else if(inmark<inlen){
-            /* inbuf[inmark] is ASCII_CR or ASCII_LF */
-            linefeed[toNone][1]=0;
+        clearerr(in);
+        inlen+=(CARD32)fread(inbuf+inlen,1,BufSize-inlen,in);
+        err=ferror(in);
+        if(err!=0){
+            fprintf(stderr,"error in lc_getline\n");
+            return(err);
+        }
+        inmark=0;
+        start=(INT32)inmark;
+        *line=inbuf;
+        while((inmark<inlen)&&(inbuf[inmark]!=ASCII_CR)
+              &&(inbuf[inmark]!=ASCII_LF)){
             inmark++;
         }
-        return(0);
-    }/*getline*/
-
-    
-    static INT32 eof(FILE* fd)
-    {
-        return((feof(fd))&&(inmark>=inlen));
-    }/*eof*/
-
-    
-    static INT32 flush(FILE* out)
-    {
-        clearerr(out);
-        if(outlen>0){
-            fwrite(outbuf,1,outlen,out);
+    }
+    *len=(INT32)inmark-start;
+    linefeed[toNone][0]=inbuf[inmark];
+    linefeed[toNone][1]=inbuf[inmark+1];
+    if(inmark+1<inlen){
+        if(inbuf[inmark]==ASCII_CR){
+            if(inbuf[inmark+1]==ASCII_LF){
+                inmark+=2;
+                linefeed[toNone][2]=0;
+            }else{
+                inmark+=1;
+                linefeed[toNone][1]=0;
+            }
+        }else if(inbuf[inmark]==ASCII_LF){
+            if(inbuf[inmark+1]==ASCII_CR){
+                inmark+=2;
+                linefeed[toNone][2]=0;
+            }else{
+                inmark+=1;
+                linefeed[toNone][1]=0;
+            }
+        }else{
+            /* should not occur ?!? */
+            linefeed[toNone][2]=0;
         }
-        outlen=0;
-        return(ferror(out));
-    }/*flush*/
+    }else if(inmark<inlen){
+        /* inbuf[inmark] is ASCII_CR or ASCII_LF */
+        linefeed[toNone][1]=0;
+        inmark++;
+    }
+    return(0);
+}/*lc_getline*/
+
+    
+static INT32 eof(FILE* fd)
+{
+    return((feof(fd))&&(inmark>=inlen));
+}/*eof*/
+
+    
+static INT32 flush(FILE* out)
+{
+    clearerr(out);
+    if(outlen>0){
+        size_t r=fwrite(outbuf,1,outlen,out);
+        (void)r;
+    }
+    outlen=0;
+    return(ferror(out));
+}/*flush*/
     
 
-    static INT32 putstr(FILE* out,char* str,CARD32 len)
-    {
-            char*       dst;
-            INT32       err;
+static INT32 putstr(FILE* out,char* str,CARD32 len)
+{
+    char*       dst;
+    INT32       err;
             
-        if(len>0){
-            if(outlen+len>BufSize){
-                err=flush(out);
-                if(err!=0){
-                    fprintf(stderr,"error in putstr\n");
-                    return(err);
-                }
+    if(len>0){
+        if(outlen+len>BufSize){
+            err=flush(out);
+            if(err!=0){
+                fprintf(stderr,"error in putstr\n");
+                return(err);
             }
-            dst=outbuf+outlen;
-            strncpy(dst,str,len);
-            outlen+=len;
         }
-        return(0);
-    }/*putstr*/
+        dst=outbuf+outlen;
+        strncpy(dst,str,len);
+        outlen+=len;
+    }
+    return(0);
+}/*putstr*/
     
     
     
     
-    static INT32 convert(FILE* in,FILE* out)
-    {
-        INT32           length;
-        INT32           err;
-        char*           line;
-        char*           lf;
-        CARD32          lfsize;
+static INT32 convert(FILE* in,FILE* out)
+{
+    INT32           length;
+    INT32           err;
+    char*           line;
+    char*           lf;
+    CARD32          lfsize;
             
-        lf=linefeed[converto];
-        lfsize=strlen(lf);
-        initbufs();
-        while(!eof(in)){
-            err=getline(in,&line,&length);
-            if(err!=0){
-                printf("error in convert (getline)\n");
-                return(err);
-            }
-            if(removebs||removedel){
-                length=copytobegin(line,length);
-            }
-            err=putstr(out,line,(unsigned)length);
-            if(err!=0){
-                printf("error in convert (putstr)\n");
-                return(err);
-            }
-            err=putstr(out,lf,lfsize);
-            if(err!=0){
-                return(err);
-            }
+    lf=linefeed[converto];
+    lfsize=(CARD32)strlen(lf);
+    initbufs();
+    while(!eof(in)){
+        err=lc_getline(in,&line,&length);
+        if(err!=0){
+            printf("error in convert (lc_getline)\n");
+            return(err);
         }
-        flush(out);
-        return(0);
-    }/*convert*/
+        if(removebs||removedel){
+            length=copytobegin(line,length);
+        }
+        err=putstr(out,line,(unsigned)length);
+        if(err!=0){
+            printf("error in convert (putstr)\n");
+            return(err);
+        }
+        err=putstr(out,lf,lfsize);
+        if(err!=0){
+            return(err);
+        }
+    }
+    flush(out);
+    return(0);
+}/*convert*/
     
         
-    static void usage(char* pname)
-    {   
-        printf("# %s usage:\n   %s -[b](m|u|p|c) file... | < file > file\n",pname,pname);
-    }/*usage*/
+static void usage(char* pname)
+{   
+    printf("# %s usage:\n   %s -[b](m|u|p|c) file... | < file > file\n",pname,pname);
+}/*usage*/
     
     
-    static void printerr(INT32 err)
-    {
-        fprintf(stderr,"Error: %ld G%sH\n",err,strerror(err));
-    }/*printerr*/
+static void printerr(INT32 err)
+{
+    fprintf(stderr,"Error: %"FMT_INT32" G%sH\n",err,strerror(err));
+}/*printerr*/
     
     
-    static void MakeTempName(char* src,char* temp)
-        /*
-            PRE:        The number of file in the file system < MAXINT32
-        */
-    {
-            INT32           n;
-            struct stat     status;
+static void MakeTempName(char* src,char* temp)
+/*
+  PRE:        The number of file in the file system < MAXINT32
+*/
+{
+    INT32           n;
+    struct stat     status;
     
-        n=-1;
-        do{
-            n++;
-            sprintf(temp,"%s.%ld",src,n);
-        }while(lstat(temp,&status)==0);
-    }/*MakeTempName*/
+    n=-1;
+    do{
+        n++;
+        sprintf(temp,"%s.%"FMT_INT32,src,n);
+    }while(lstat(temp,&status)==0);
+}/*MakeTempName*/
 
     
-    static const char* FileType(unsigned int mode)
-    {
-        switch(mode&S_IFMT){
-        case S_IFDIR:   return("directory");
-        case S_IFCHR:   return("character special device");
-        case S_IFBLK:   return("block special device");
-        case S_IFREG:   return("regular file");
-        case S_IFLNK:   return("symbolic link");
-        case S_IFSOCK:  return("socket");
-        default:        return("something of unknown type");
-        }
-    }/*FileType*/
+static const char* FileType(unsigned int mode)
+{
+    switch(mode&S_IFMT){
+    case S_IFDIR:   return("directory");
+    case S_IFCHR:   return("character special device");
+    case S_IFBLK:   return("block special device");
+    case S_IFREG:   return("regular file");
+    case S_IFLNK:   return("symbolic link");
+    case S_IFSOCK:  return("socket");
+    default:        return("something of unknown type");
+    }
+}/*FileType*/
 
 
 int main(int argc,char* argv[])
 {
-        FILE*           fin;
-        FILE*           fout;
-        INT32           i;
-        INT32           j;
-        INT32           maxlinesize=MAX_INT32;
-        INT32           err;
-        char*           opt;
-        struct stat     filestatus;
-        char            OutputName[BUFSIZ];
-        char            TempLink[BUFSIZ];
-        BOOLEAN         nooption;
-        BOOLEAN         filestatus_is_valid;
+    FILE*           fin;
+    FILE*           fout;
+    INT32           i;
+    INT32           j;
+    INT32           maxlinesize=MAX_INT32;
+    INT32           err;
+    char*           opt;
+    struct stat     filestatus;
+    char            OutputName[BUFSIZ];
+    char            TempLink[BUFSIZ];
+    BOOLEAN         nooption;
+    BOOLEAN         filestatus_is_valid;
         
     nooption=TRUE;
     removedel=FALSE;
@@ -611,9 +526,10 @@ int main(int argc,char* argv[])
                                 err=link(OutputName,argv[i]);
                                 if(err==0){
                                     if(filestatus_is_valid){
-                                        chown(argv[i],filestatus.st_uid,
-                                                        filestatus.st_gid);
-                                        chmod(argv[i],(short int)(filestatus.st_mode));
+                                        int r=chown(argv[i],filestatus.st_uid,
+                                                    filestatus.st_gid);
+                                        (void)r;
+                                        chmod(argv[i],filestatus.st_mode);
                                     }
                                     unlink(TempLink);
                                 }else{
@@ -650,4 +566,4 @@ int main(int argc,char* argv[])
     return(0);
 }/*main*/
 
-/*** lc.c                             --                     --          ***/
+/**** THE END ****/

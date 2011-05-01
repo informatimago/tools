@@ -16,7 +16,7 @@ BUGS
 LEGAL
 
     GPL
-    Copyright Pascal J. Bourguignon 1994 - 2002
+    Copyright Pascal J. Bourguignon 1994 - 2011
 
     This file is part of PJB-Tools.
 

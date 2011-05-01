@@ -1,6 +1,7 @@
 extern "C"{
 #include <stdio.h>
 }
+#include <BcTypes.h>
 
 
 class File
@@ -135,7 +136,7 @@ protected:
 
         if(file->isOpen()){     
             while(!(file->isAtEnd())){
-                size=file->read(buffer,buffer_size);
+                size=(int)(file->read(buffer,buffer_size));
                 for(i=0;i<size;i++){
                     _count[buffer[i]]++;
                 }
@@ -206,11 +207,9 @@ int main(int argc,const char** argv)
     }
     delete file;
     for(i=0;i<256;i++){
-        fprintf(stdout,"%02x %-8s %10ld\n",i,charName(i),count->countOf(i));
+        fprintf(stdout,"%02x %-8s %10ld\n",i,charName((unsigned char)i),count->countOf((unsigned char)i));
     }
     return(0);  
 }/*main*/
 
-
-
-/*** charcount.cc                     -- 2003-12-01 04:45:53 -- pascal   ***/
+/**** THE END ****/

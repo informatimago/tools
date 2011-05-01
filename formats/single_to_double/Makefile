@@ -13,7 +13,7 @@
 #LEGAL
 #    GPL
 #    
-#    Copyright Pascal Bourguignon 1992 - 2003
+#    Copyright Pascal Bourguignon 1992 - 2011
 #    
 #    This program is free software; you can redistribute it and/or
 #    modify it under the terms of the GNU General Public License
@@ -34,6 +34,10 @@
 CSOURCES= s2d.c
 OTHERS = setfile is type
 PROGRAMS = s2d
+INCLUDES=\
+	-I.\
+	-I$(PREFIX)/lib \
+	-I$(PREFIX)/lib/bclib/interfaces 
 
 s2d_OBJECTS=s2d.o
 s2d_LIBRARIES=

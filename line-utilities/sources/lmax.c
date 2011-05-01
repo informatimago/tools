@@ -18,7 +18,7 @@ MODIFICATIONS
 BUGS
     lines from input file may be no longer than 4*BUFSIZ.
 LEGAL
-    Copyright Pascal J. Bourguignon 1995 - 1995
+    Copyright Pascal J. Bourguignon 1995 - 2011
     All rights reserved.
     This program or any part of it may not be included in any commercial 
     product without the author written permission. It may be used freely for 
@@ -28,60 +28,68 @@ LEGAL
 #include <stdio.h>
 #include <stdlib.h>
 
-    static void usage(char* name)
-    {
-        printf("%s usage:\n\t%s  limit\n",name,name);
-    }/*usage;*/
+static void usage(char* name)
+{
+    printf("%s usage:\n\t%s  limit\n",name,name);
+}/*usage;*/
 
 #define linesize    (4*BUFSIZ)
 
-    static int lmax(FILE* file,int limit)
-    {
-            char            buffer[linesize];
-            int             result;
-            int             len;
+static void check_error(void* res){
+    if(res==0){
+        perror("got an error");
+        exit(1);
+    }
+}
+
+
+static int lmax(FILE* file,int limit)
+{
+    char            buffer[linesize];
+    int             result;
+    size_t          len;
             
-        result=0;
-        while(!feof(file)){
-            fgets(buffer,linesize,file);
-            len=strlen(buffer);
-            if(len<=limit){
-                while((!feof(file))&&(len<=limit)){
-                    fgets(buffer,linesize,file);
-                    len=strlen(buffer);
-                }
-                if(feof(file)){
-                    return(0);
-                }else{
-                    while(!feof(file)){
-                        fgets(buffer,linesize,file);
-                    }
-                    return(1);
-                }
+    result=0;
+    while(!feof(file)){
+        check_error(fgets(buffer,linesize,file));
+        len=strlen(buffer);
+        if(len<=limit){
+            while((!feof(file))&&(len<=limit)){
+                check_error(fgets(buffer,linesize,file));
+                len=strlen(buffer);
+            }
+            if(feof(file)){
+                return(0);
             }else{
-                while((!feof(file))&&(len>limit)){
-                    fgets(buffer,linesize,file);
-                    len=strlen(buffer);
+                while(!feof(file)){
+                    check_error(fgets(buffer,linesize,file));
                 }
-                if(feof(file)){
-                    return(2);
-                }else{
-                    while(!feof(file)){
-                        fgets(buffer,linesize,file);
-                    }
-                    return(1);
+                return(1);
+            }
+        }else{
+            while((!feof(file))&&(len>limit)){
+                check_error(fgets(buffer,linesize,file));
+                len=strlen(buffer);
+            }
+            if(feof(file)){
+                return(2);
+            }else{
+                while(!feof(file)){
+                    check_error(fgets(buffer,linesize,file));
                 }
+                return(1);
             }
         }
-        return(result);
-    }/*lmax*/
+    }
+    return(result);
+}/*lmax*/
     
     
 int main(int argc,char** argv)
 {
-        int             i;
-        int             limit=0;
-        int             (*test)(FILE*,int);
+    int             i;
+    int             limit=0;
+    int             (*test)(FILE*,int);
         
     i=1;
     while(i<argc){

@@ -181,7 +181,7 @@ LEGAL
             short escaped=0;
             char  quote=' ';
 
-            i=strlen(line)-1;
+            i=(int)strlen(line)-1;
             if(line[i]=='\n'){
                 line[i]='\0';
             }

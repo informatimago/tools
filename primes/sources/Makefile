@@ -16,7 +16,7 @@
 #LEGAL
 #    GPL
 #    
-#    Copyright Pascal Bourguignon 1993 - 2003
+#    Copyright Pascal Bourguignon 1993 - 2011
 #    
 #    This program is free software; you can redistribute it and/or
 #    modify it under the terms of the GNU General Public License
@@ -38,6 +38,8 @@ CSOURCES = primes.c
 
 INCLUDES = \
 	-I../sources \
+	-I$(PREFIX)/lib \
+	-I$(PREFIX)/lib/bclib/interfaces \
 	$(TARGET_INCLUDES)
 
 PROGRAMS = primes

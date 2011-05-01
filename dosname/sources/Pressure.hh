@@ -14,7 +14,7 @@ MODIFICATIONS
     1995-01-01 <PJB> Creation.
 BUGS
 LEGAL
-    Copyright Pascal J. Bourguignon 1995 - 2001
+    Copyright Pascal J. Bourguignon 1995 - 2011
 
     GPL
 

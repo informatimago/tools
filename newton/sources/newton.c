@@ -14,7 +14,7 @@ BUGS
 LEGAL
     GPL
     
-    Copyright Pascal Bourguignon 1991 - 1991
+    Copyright Pascal Bourguignon 1991 - 2011
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -37,17 +37,18 @@ LEGAL
 #include <math.h>
 
 /*
-    F=K*M*m/d/d
-    a0=K*m1/d/d
-    a1=K*m0/d/d
+  F=K*M*m/d/d
+  a0=K*m1/d/d
+  a1=K*m0/d/d
 */
 
 static double get_double(void)
 {
     float m;
 
-  scanf("%e",&m);
-  return((double)m);
+    int r=scanf("%e",&m);
+    (void)r;
+    return((double)m);
 }/*get_double*/
 
 int main(void)
@@ -59,53 +60,53 @@ int main(void)
     double d,a,t,dt; 
     double ax0,ayy0,ax1,ayy1,ux,uy;
 
-  printf("Mass of the planet=");
-  m0=get_double();
-  x0=0.0;
-  yy0=0.0;
-  vx0=0.0;
-  vyy0=0.0;
+    printf("Mass of the planet=");
+    m0=get_double();
+    x0=0.0;
+    yy0=0.0;
+    vx0=0.0;
+    vyy0=0.0;
 
-  printf("Mass of the satellite=");
-  m1=get_double();
+    printf("Mass of the satellite=");
+    m1=get_double();
 
-  printf("Position of the satellite (x y)=");
-  x1=get_double();
-  yy1=get_double(); 
+    printf("Position of the satellite (x y)=");
+    x1=get_double();
+    yy1=get_double(); 
   
-  printf("Speed of the satellite (vx vy)=");
-  vx1=get_double();
-  vyy1=get_double();
+    printf("Speed of the satellite (vx vy)=");
+    vx1=get_double();
+    vyy1=get_double();
 
-  printf("delta-t=");
-  dt=get_double();
-  t=0.0;
-  while(1){
-    ux=(x1-x0);
-    uy=(yy1-yy0);
-    d=sqrt(ux*ux+uy*uy);
-    ux=ux/d;
-    uy=uy/d;
+    printf("delta-t=");
+    dt=get_double();
+    t=0.0;
+    while(1){
+        ux=(x1-x0);
+        uy=(yy1-yy0);
+        d=sqrt(ux*ux+uy*uy);
+        ux=ux/d;
+        uy=uy/d;
 
-    a=1.0/(11e11)/d/d;
-    ax0=ux*a*m1;
-    ayy0=uy*a*m1;
-    ax1=(-ux)*a*m0;
-    ayy1=(-uy)*a*m0;
+        a=1.0/(11e11)/d/d;
+        ax0=ux*a*m1;
+        ayy0=uy*a*m1;
+        ax1=(-ux)*a*m0;
+        ayy1=(-uy)*a*m0;
  
-    vx0+=ax0*dt;
-    vyy0+=ayy0*dt;
-    x0+=vx0*dt;
-    yy0+=vyy0*dt;
-    vx1+=ax1*dt;
-    vyy1+=ayy1*dt;
-    x1+=vx1*dt;
-    yy1+=vyy1*dt;
+        vx0+=ax0*dt;
+        vyy0+=ayy0*dt;
+        x0+=vx0*dt;
+        yy0+=vyy0*dt;
+        vx1+=ax1*dt;
+        vyy1+=ayy1*dt;
+        x1+=vx1*dt;
+        yy1+=vyy1*dt;
 
-    printf("%3f:  %g %g    %g %g  %g %g  %g %g\n",t,x0,yy0,x1,yy1,vx1,vyy1,ax1,ayy1);
-    t+=dt;
-  }
-  return(0);
+        printf("%3f:  %g %g    %g %g  %g %g  %g %g\n",t,x0,yy0,x1,yy1,vx1,vyy1,ax1,ayy1);
+        t+=dt;
+    }
+    return(0);
 }
 
 /*** newton.c                         -- 2003-12-02 15:34:45 -- pascal   ***/

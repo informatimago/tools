@@ -16,7 +16,7 @@ BUGS
 LEGAL
     GPL
     
-    Copyright Pascal Bourguignon 1995 - 1995
+    Copyright Pascal Bourguignon 1995 - 2011
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -173,7 +173,7 @@ int main(void)
     attribute_list_initialize(&list);
     while(fgets(line,sizeof(line)-1,stdin)!=0){
         {
-            int len=strlen(line);
+            int len=(int)strlen(line);
             if((len>0)&&('\n'==line[len-1])){
                 line[len-1]='\0';
             }

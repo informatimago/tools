@@ -15,7 +15,7 @@ BUGS
 LEGAL
     GPL
     
-    Copyright Pascal Bourguignon 2004 - 2004
+    Copyright Pascal Bourguignon 2004 - 2011
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License

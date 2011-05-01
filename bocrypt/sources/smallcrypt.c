@@ -20,7 +20,7 @@ MODIFICATIONS
 LEGAL
     GPL
     
-    Copyright Pascal Bourguignon 1994 - 1994
+    Copyright Pascal Bourguignon 1994 - 2011
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -43,257 +43,257 @@ LEGAL
 #include <stdarg.h>
 #include <sys/file.h>
 
-    static char*        pname;
-    static int          quiet=0;
+static char*        pname;
+static int          quiet=0;
 
-    static void qerror(const char* format,...)
-    {
-            va_list     plist;
-            char        message[BUFSIZ];
+static void qerror(const char* format,...)
+{
+    va_list     plist;
+    char        message[BUFSIZ];
         
-        va_start(plist,format);
-        vsprintf(message,format,plist);
-        va_end(plist);
-        perror(message);
-    }/*qerror*/
+    va_start(plist,format);
+    vsprintf(message,format,plist);
+    va_end(plist);
+    perror(message);
+}/*qerror*/
     
 
-    static int fsize(FILE* stream)
-    {
-            int     res;
-            int     size;
-            int     pos;
+static int fsize(FILE* stream)
+{
+    int     res;
+    int     size;
+    int     pos;
             
-        pos=ftell(stream);
-        if(pos<0){
-            return(pos);
-        }
-        res=fseek(stream,0,SEEK_END);
+    pos=(int)ftell(stream);
+    if(pos<0){
+        return(pos);
+    }
+    res=fseek(stream,0,SEEK_END);
+    if(res<0){
+        return(res);
+    }else{
+        size=(int)ftell(stream);
+        res=fseek(stream,pos,SEEK_SET);
         if(res<0){
             return(res);
         }else{
-            size=ftell(stream);
-            res=fseek(stream,pos,SEEK_SET);
-            if(res<0){
-                return(res);
-            }else{
-                return(size);
-            }
+            return(size);
         }
-    }/*fsize;*/
+    }
+}/*fsize;*/
             
     
-    static char* loadkey(FILE* keyfile)
-    {
-            int         size;
-            char*       key;
-            int         len;
-            char        buffer[BUFSIZ];
+static char* loadkey(FILE* keyfile)
+{
+    int         size;
+    char*       key;
+    int         len;
+    char        buffer[BUFSIZ];
             
-        size=fsize(keyfile);
-        if(size<0){
-            qerror("fsize '%s'",pname);
-            return(NULL);
-        }
-
-        key=malloc((unsigned)size);
-        key[0]='\0';
-            
-        while((size>0)&&(fgets(buffer,sizeof(buffer),keyfile)!=NULL)){
-            len=strlen(buffer);
-            size-=len;
-            if(buffer[len-1]=='\n'){
-                len--;
-                buffer[len]='\0';
-            }
-            strcat(key,buffer);
-        }
-        
-        return(key);
-    }/*loadkey;*/
-    
-    
-    static char* dpos(/*char*/int c,/*char*/int d,const char* key,int keyindex)
-    {
-            char*       kip;
-        
-        kip=index(key+keyindex,c);
-        while(kip!=NULL){
-            if(kip[1]==d){
-                return(kip);
-            }
-            kip=index(kip+1,c);
-        }
-        kip=index(key,c);
-        while(kip!=NULL){
-            if(kip[1]==d){
-                return(kip);
-            }
-            kip=index(kip+1,c);
-        }
+    size=fsize(keyfile);
+    if(size<0){
+        qerror("fsize '%s'",pname);
         return(NULL);
-    }/*dpos;*/
-    
-    
-    static int encrypt(const char* key,FILE* input,FILE* output)
-    {
-            int             keylength;
-            int             keyindex;
-            const char*     kip;
-            const char*     kop;
-            int             c;
-            int             count;
+    }
+
+    key=malloc((unsigned)size);
+    key[0]='\0';
+            
+    while((size>0)&&(fgets(buffer,sizeof(buffer),keyfile)!=NULL)){
+        len=(int)strlen(buffer);
+        size-=len;
+        if(buffer[len-1]=='\n'){
+            len--;
+            buffer[len]='\0';
+        }
+        strcat(key,buffer);
+    }
         
-        count=0;
-        keylength=strlen(key);
-        keyindex=2;
-        c=fgetc(input);
-        while(c!=EOF){
-            if((c!='\n')&&(c!='\0')){
-                kip=index(key+keyindex,c);
-                if(kip==NULL){
-                    kip=index(key,c);
-                }
-                if(kip==NULL){
-                    if((c!=' ')&&(!quiet)){
-                        fprintf(stderr,"%s error:   char '%c' not in "
+    return(key);
+}/*loadkey;*/
+    
+    
+static char* dpos(/*char*/int c,/*char*/int d,const char* key,int keyindex)
+{
+    char*       kip;
+        
+    kip=index(key+keyindex,c);
+    while(kip!=NULL){
+        if(kip[1]==d){
+            return(kip);
+        }
+        kip=index(kip+1,c);
+    }
+    kip=index(key,c);
+    while(kip!=NULL){
+        if(kip[1]==d){
+            return(kip);
+        }
+        kip=index(kip+1,c);
+    }
+    return(NULL);
+}/*dpos;*/
+    
+    
+static int encrypt(const char* key,FILE* input,FILE* output)
+{
+    int             keylength;
+    int             keyindex;
+    const char*     kip;
+    const char*     kop;
+    int             c;
+    int             count;
+        
+    count=0;
+    keylength=(int)strlen(key);
+    keyindex=2;
+    c=fgetc(input);
+    while(c!=EOF){
+        if((c!='\n')&&(c!='\0')){
+            kip=index(key+keyindex,c);
+            if(kip==NULL){
+                kip=index(key,c);
+            }
+            if(kip==NULL){
+                if((c!=' ')&&(!quiet)){
+                    fprintf(stderr,"%s error:   char '%c' not in "
                             "key file. Substituted with a space.\n",
                             pname,c);
-                    }
-                    c=key[2];
-                    kip=index(key+keyindex,c);
-                    if(kip==NULL){
-                        kip=key+2;
-                    }
                 }
+                c=key[2];
+                kip=index(key+keyindex,c);
+                if(kip==NULL){
+                    kip=key+2;
+                }
+            }
                 
-                kop=2+dpos(kip[-2],kip[-1],key,keyindex-2);
-                if((key+keyindex<=kop)&&(kop<kip)&&(!quiet)){
-                    fprintf(stderr,"%s warning: char '%c' from "
+            kop=2+dpos(kip[-2],kip[-1],key,keyindex-2);
+            if((key+keyindex<=kop)&&(kop<kip)&&(!quiet)){
+                fprintf(stderr,"%s warning: char '%c' from "
                         "keyindex=%d will be wrongly decoded as '%c'\n",
                         pname,c,keyindex,*kop);
-                }
+            }
                 
-                keyindex=kip-key;
-                if(EOF==fputc(kip[-2],output)){
+            keyindex=(int)(kip-key);
+            if(EOF==fputc(kip[-2],output)){
+                qerror("fputc to output");
+                return(4);
+            }
+            if(EOF==fputc(kip[-1],output)){
+                qerror("fputc to output");
+                return(4);
+            }
+            count+=2;
+            if(count>=72){
+                count=0;
+                if(EOF==fputc('\n',output)){
                     qerror("fputc to output");
                     return(4);
-                }
-                if(EOF==fputc(kip[-1],output)){
-                    qerror("fputc to output");
-                    return(4);
-                }
-                count+=2;
-                if(count>=72){
-                    count=0;
-                    if(EOF==fputc('\n',output)){
-                        qerror("fputc to output");
-                        return(4);
-                    }
-                }
-                keyindex++;
-                if(key[keyindex]=='\0'){
-                    keyindex=2;
                 }
             }
-            c=fgetc(input);
+            keyindex++;
+            if(key[keyindex]=='\0'){
+                keyindex=2;
+            }
         }
-        if(EOF==fputc('\n',output)){
-            qerror("fputc to output");
-            return(4);
-        }
-        return(0);
-    }/*encrypt;*/
+        c=fgetc(input);
+    }
+    if(EOF==fputc('\n',output)){
+        qerror("fputc to output");
+        return(4);
+    }
+    return(0);
+}/*encrypt;*/
 
     
-    static int decrypt(const char* key,FILE* input,FILE* output)
-    {
-            int             keylength;
-            int             keyindex;
-            const char*     kip;
-            int             c;
-            int             d;
-            int             count;
+static int decrypt(const char* key,FILE* input,FILE* output)
+{
+    int             keylength;
+    int             keyindex;
+    const char*     kip;
+    int             c;
+    int             d;
+    int             count;
         
-        count=0;
-        keylength=strlen(key);
-        keyindex=0;
-        c=fgetc(input);
-        while(c!=EOF){
-            while((c=='\n')||(c=='\0')){
-                c=fgetc(input);
-            }
-            d=fgetc(input);
-            while((d=='\n')||(d=='\0')){
-                d=fgetc(input);
-            }
-            if(d!=EOF){
-                kip=dpos(c,d,key,keyindex);
-                if(kip==NULL){
-                    if(!quiet){
-                        fprintf(stderr,"%s error:   char '%c' not in "
-                            "key file. Substituted with a '?'\n",
-                            pname,c);
-                    }
-                    if(EOF==fputc('?',output)){
-                        qerror("fputc to output");
-                        return(4);
-                    }
-                    count++;
-                }else{
-                    kip+=2;
-                    c=*kip;
-                    keyindex=kip-key;
-                    if(c==key[2]){
-                        c=' ';
-                    }
-                    if(EOF==fputc(c,output)){
-                        qerror("fputc to output");
-                        return(4);
-                    }
-                    count++;
-                }
-                
-                if((count>=60)&&((c==' ')||(c=='?'))){
-                    count=0;
-                    if(EOF==fputc('\n',output)){
-                        qerror("fputc to output");
-                        return(4);
-                    }
-                }
-                if(key[keyindex]=='\0'){
-                    keyindex=0;
-                }
-            }
+    count=0;
+    keylength=(int)strlen(key);
+    keyindex=0;
+    c=fgetc(input);
+    while(c!=EOF){
+        while((c=='\n')||(c=='\0')){
             c=fgetc(input);
         }
-        if(EOF==fputc('\n',output)){
-            qerror("fputc to output");
-            return(4);
+        d=fgetc(input);
+        while((d=='\n')||(d=='\0')){
+            d=fgetc(input);
         }
-        return(0);
-    }/*decrypt;*/
+        if(d!=EOF){
+            kip=dpos(c,d,key,keyindex);
+            if(kip==NULL){
+                if(!quiet){
+                    fprintf(stderr,"%s error:   char '%c' not in "
+                            "key file. Substituted with a '?'\n",
+                            pname,c);
+                }
+                if(EOF==fputc('?',output)){
+                    qerror("fputc to output");
+                    return(4);
+                }
+                count++;
+            }else{
+                kip+=2;
+                c=*kip;
+                keyindex=(int)(kip-key);
+                if(c==key[2]){
+                    c=' ';
+                }
+                if(EOF==fputc(c,output)){
+                    qerror("fputc to output");
+                    return(4);
+                }
+                count++;
+            }
+                
+            if((count>=60)&&((c==' ')||(c=='?'))){
+                count=0;
+                if(EOF==fputc('\n',output)){
+                    qerror("fputc to output");
+                    return(4);
+                }
+            }
+            if(key[keyindex]=='\0'){
+                keyindex=0;
+            }
+        }
+        c=fgetc(input);
+    }
+    if(EOF==fputc('\n',output)){
+        qerror("fputc to output");
+        return(4);
+    }
+    return(0);
+}/*decrypt;*/
     
     
-    static void usage(const char* upname)
-    {
-        fprintf(stderr,"%s usage:\n"
-    "   sencrypt [-q] keyfile [ clearfile   | < clearfile   ] > cryptedfile\n"
-    "   sdecrypt [-q] keyfile [ cryptedfile | < cryptedfile ] > clearfile\n",
-        upname);
-    }/*usage;*/
+static void usage(const char* upname)
+{
+    fprintf(stderr,"%s usage:\n"
+            "   sencrypt [-q] keyfile [ clearfile   | < clearfile   ] > cryptedfile\n"
+            "   sdecrypt [-q] keyfile [ cryptedfile | < cryptedfile ] > clearfile\n",
+            upname);
+}/*usage;*/
 
 
 int main(int argc,char* argv[])
 {
-        int         encrypting=0;
-        FILE*       keyfile;
-        FILE*       inputfile;
-        char*       key;
-        int         res;
-        int         i;
-        char*       kfname=NULL;
-        char*       ifname=NULL;
+    int         encrypting=0;
+    FILE*       keyfile;
+    FILE*       inputfile;
+    char*       key;
+    int         res;
+    int         i;
+    char*       kfname=NULL;
+    char*       ifname=NULL;
         
     pname=rindex(argv[0],'/');
     if(pname==NULL){
@@ -308,11 +308,11 @@ int main(int argc,char* argv[])
         encrypting=0;
     }else{
         fprintf(stderr,
-            "You should do:\n"
-            "    ln -s %s sencrypt\n"
-            "    ln -s %s sdecrypt\n"
-            " and use sencrypt or sdecrypt instead of %s.\n",
-            pname,pname,pname);
+                "You should do:\n"
+                "    ln -s %s sencrypt\n"
+                "    ln -s %s sdecrypt\n"
+                " and use sencrypt or sdecrypt instead of %s.\n",
+                pname,pname,pname);
         usage(pname);
         return(1);
     }
@@ -366,4 +366,4 @@ int main(int argc,char* argv[])
     return(res);
 }/*main.*/
 
-/*** smallcrypt.c                     --                     --          ***/
+/**** THE END ****/

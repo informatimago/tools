@@ -14,7 +14,7 @@ BUGS
 LEGAL
     GPL
     
-    Copyright Pascal Bourguignon 1993 - 1993
+    Copyright Pascal Bourguignon 1993 - 2011
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -36,225 +36,228 @@ LEGAL
 #include <stdio.h>
 #include <libgen.h>
 
-typedef long int    integer;
-static const long int max_integer=0x7fffffff;
+#include <BcTypes.h>
 
-    static integer          debug=0;
+typedef INT32    integer;
+static const INT32 max_integer=MAX_INT32;
+#define FMT_integer FMT_INT32
+
+static integer          debug=0;
     
 
 #define round4k(s)  ((((s)+4095)/4096)*4096)
 #define bits_per_char       (8)
-#define bits_per_integer    (sizeof(integer)*bits_per_char)
+#define bits_per_integer    ((integer)(sizeof(integer)*bits_per_char))
 
-    static integer* ComputePrimesTo(integer n)
-    {
-            integer         bitsmax;
-            integer*        bits;       /* set of odd numbers.*/
-            integer*        curbits;
-            integer         i;
-            integer         curprime;
-            integer         primecount;
-            integer         bit;
-            integer         halfn;
-            integer*        primes;
-            integer*        curnum;
+static integer* ComputePrimesTo(integer n)
+{
+    integer         bitsmax;
+    integer*        bits;       /* set of odd numbers.*/
+    integer*        curbits;
+    integer         i;
+    integer         curprime;
+    integer         primecount;
+    integer         bit;
+    integer         halfn;
+    integer*        primes;
+    integer*        curnum;
 
 
-        n+=2;
-        bitsmax=(n/2+bits_per_integer-1)/bits_per_integer;
-        n=2*bitsmax*bits_per_integer;
-        halfn=n/2;
-        bits=malloc(round4k(bitsmax*sizeof(integer)));
-            /* SEE: seems to be a bug for large allocation sizes ?*/
+    n+=2;
+    bitsmax=(n/2+bits_per_integer-1)/bits_per_integer;
+    n=2*bitsmax*bits_per_integer;
+    halfn=n/2;
+    bits=malloc((size_t)round4k((size_t)bitsmax*sizeof(integer)));
+    /* SEE: seems to be a bug for large allocation sizes ?*/
         
-        /* set the bitset to full bits;*/
-        curbits=bits;
-        i=bitsmax-1;
-        while(i-->=0){
-            *curbits++=(~0);
+    /* set the bitset to full bits;*/
+    curbits=bits;
+    i=bitsmax-1;
+    while(i-->=0){
+        *curbits++=(~0);
+    }
+    /* reset the last bit as watchdog for searching next prime.*/
+    bits[bitsmax-1]=~(1<<(bits_per_integer-1));
+    /*bits[(halfn-1)/bits_per_integer]&=~(1<<((n-1)%bits_per_integer));*/
+        
+    primecount=2;
+    curprime=3;
+    while(curprime<n){
+        bit=(curprime-3)/2+curprime;
+        while(bit<halfn){
+            if(debug){printf("exclude bit %"FMT_integer"\n",bit);}
+            bits[bit/bits_per_integer]&=~(1<<(bit%bits_per_integer));
+            bit+=curprime;
         }
-        /* reset the last bit as watchdog for searching next prime.*/
-        bits[bitsmax-1]=~(1<<(bits_per_integer-1));
-        /*bits[(halfn-1)/bits_per_integer]&=~(1<<((n-1)%bits_per_integer));*/
-        
-        primecount=2;
-        curprime=3;
-        while(curprime<n){
-            bit=(curprime-3)/2+curprime;
-            while(bit<halfn){
-if(debug){printf("exclude bit %ld\n",bit);}
-                bits[bit/bits_per_integer]&=~(1<<(bit%bits_per_integer));
-                bit+=curprime;
-            }
-            bit=(curprime-3)/2+1;
-            while(!(bits[bit/bits_per_integer]&(1<<(bit%bits_per_integer)))){
-                bit++;
-            }
-            curprime=2*bit+3;
-if(debug){printf("found prime %ld\n",curprime);}
-            primecount++;
-        }
-if(debug){printf("primecount %ld\n",primecount);}
-        
-        primes=malloc(round4k((primecount+1)*sizeof(integer)));
-if(debug){printf("primes=%p\n",(void*)primes);}
-if(debug){printf("after last primes=%p\n",(void*)(primes+(primecount+1)));}
-        curnum=primes;
-        *curnum++=2;
-        curprime=3;
-        bit=0;
-        while(curprime<n){
+        bit=(curprime-3)/2+1;
+        while(!(bits[bit/bits_per_integer]&(1<<(bit%bits_per_integer)))){
             bit++;
-            while(!(bits[bit/bits_per_integer]&(1<<(bit%bits_per_integer)))){
-if(debug){printf("skipped bit %ld\n",bit);}
-                bit++;
-            }
-            curprime=2*bit+3;
-if(debug){printf("found prime %ld\n",curprime);}
-            *curnum++=curprime;
         }
-        *curnum++=0;
-if(debug){printf("curnum=%p\n",(void*)curnum);}
-        free(bits);
-        return(primes);
-    }/*ComputePrimesTo;*/
-    
-
-
-    static integer* ComputeOnePrimeFrom(integer from)
-    {
-        integer         bitsmax;
-        integer*        bits;       /* set of odd numbers.*/
-        integer*        curbits;
-        integer         i;
-        integer         curprime;
-        integer         primecount;
-        integer         bit;
-        integer         halfn;
-        integer*        primes;
-        integer         n=max_integer;
-
-        if(from<n/4){
-            integer four_from=from*4;
-            while(n>four_from){
-                n/=2;
-            }
-        }
-
-        bitsmax=(n/2+bits_per_integer-1)/bits_per_integer;
-        n=2*bitsmax*bits_per_integer;
-        halfn=n/2;
-        bits=malloc(round4k(bitsmax*sizeof(integer)));
-            /* SEE: seems to be a bug for large allocation sizes ?*/
+        curprime=2*bit+3;
+        if(debug){printf("found prime %"FMT_integer"\n",curprime);}
+        primecount++;
+    }
+    if(debug){printf("primecount %"FMT_integer"\n",primecount);}
         
-        /* set the bitset to full bits;*/
-        curbits=bits;
-        i=bitsmax-1;
-        while(i-->=0){
-            *curbits++=(~0);
+    primes=malloc((size_t)round4k((size_t)(primecount+1)*sizeof(integer)));
+    if(debug){printf("primes=%p\n",(void*)primes);}
+    if(debug){printf("after last primes=%p\n",(void*)(primes+(primecount+1)));}
+    curnum=primes;
+    *curnum++=2;
+    curprime=3;
+    bit=0;
+    while(curprime<n){
+        bit++;
+        while(!(bits[bit/bits_per_integer]&(1<<(bit%bits_per_integer)))){
+            if(debug){printf("skipped bit %"FMT_integer"\n",bit);}
+            bit++;
         }
-        /* reset the last bit as watchdog for searching next prime.*/
-        bits[bitsmax-1]=~(1<<(bits_per_integer-1));
-        /*bits[(halfn-1)/bits_per_integer]&=~(1<<((n-1)%bits_per_integer));*/
-        
-        primecount=2;
-        curprime=3;
-        while(curprime<=from){
-            bit=(curprime-3)/2+curprime;
-            while(bit<halfn){
-if(debug){printf("exclude bit %ld\n",bit);}
-                bits[bit/bits_per_integer]&=~(1<<(bit%bits_per_integer));
-                bit+=curprime;
-            }
-            bit=(curprime-3)/2+1;
-            while(!(bits[bit/bits_per_integer]&(1<<(bit%bits_per_integer)))){
-                bit++;
-            }
-            curprime=2*bit+3;
-if(debug){printf("found prime %ld\n",curprime);}
-            primecount++;
+        curprime=2*bit+3;
+        if(debug){printf("found prime %"FMT_integer"\n",curprime);}
+        *curnum++=curprime;
+    }
+    *curnum++=0;
+    if(debug){printf("curnum=%p\n",(void*)curnum);}
+    free(bits);
+    return(primes);
+}/*ComputePrimesTo;*/
+    
+
+
+static integer* ComputeOnePrimeFrom(integer from)
+{
+    integer         bitsmax;
+    integer*        bits;       /* set of odd numbers.*/
+    integer*        curbits;
+    integer         i;
+    integer         curprime;
+    integer         primecount;
+    integer         bit;
+    integer         halfn;
+    integer*        primes;
+    integer         n=max_integer;
+
+    if(from<n/4){
+        integer four_from=from*4;
+        while(n>four_from){
+            n/=2;
         }
-if(debug){printf("primecount %ld\n",primecount);}
+    }
+
+    bitsmax=(n/2+bits_per_integer-1)/bits_per_integer;
+    n=2*bitsmax*bits_per_integer;
+    halfn=n/2;
+    bits=malloc((size_t)round4k((size_t)bitsmax*sizeof(integer)));
+    /* SEE: seems to be a bug for large allocation sizes ?*/
         
-        primes=malloc(2*sizeof(integer));
-if(debug){printf("next prime=%ld\n",curprime);}
-        primes[0]=curprime;
-        primes[1]=0;
-        free(bits);
-        return(primes);
-    }/*ComputeOnePrimeFrom;*/
+    /* set the bitset to full bits;*/
+    curbits=bits;
+    i=bitsmax-1;
+    while(i-->=0){
+        *curbits++=(~0);
+    }
+    /* reset the last bit as watchdog for searching next prime.*/
+    bits[bitsmax-1]=~(1<<(bits_per_integer-1));
+    /*bits[(halfn-1)/bits_per_integer]&=~(1<<((n-1)%bits_per_integer));*/
+        
+    primecount=2;
+    curprime=3;
+    while(curprime<=from){
+        bit=(curprime-3)/2+curprime;
+        while(bit<halfn){
+            if(debug){printf("exclude bit %"FMT_integer"\n",bit);}
+            bits[bit/bits_per_integer]&=~(1<<(bit%bits_per_integer));
+            bit+=curprime;
+        }
+        bit=(curprime-3)/2+1;
+        while(!(bits[bit/bits_per_integer]&(1<<(bit%bits_per_integer)))){
+            bit++;
+        }
+        curprime=2*bit+3;
+        if(debug){printf("found prime %"FMT_integer"\n",curprime);}
+        primecount++;
+    }
+    if(debug){printf("primecount %"FMT_integer"\n",primecount);}
+        
+    primes=malloc(2*sizeof(integer));
+    if(debug){printf("next prime=%"FMT_integer"\n",curprime);}
+    primes[0]=curprime;
+    primes[1]=0;
+    free(bits);
+    return(primes);
+}/*ComputeOnePrimeFrom;*/
     
     
     
-    static integer* Factorize(integer n,integer* primes)
-    {
-            integer         primecount;
-            integer*        exponents;
-            integer         expo;
-            integer         prime;
-            integer*        curexponent;
+static integer* Factorize(integer n,integer* primes)
+{
+    integer         primecount;
+    integer*        exponents;
+    integer         expo;
+    integer         prime;
+    integer*        curexponent;
             
-        primecount=0;
-        while(primes[primecount++]>0){
-        }
+    primecount=0;
+    while(primes[primecount++]>0){
+    }
         
-        exponents=malloc(round4k(sizeof(integer)*(primecount+1)));
-        curexponent=exponents+1;
+    exponents=malloc((size_t)round4k((size_t)(primecount+1)*sizeof(integer)));
+    curexponent=exponents+1;
         
-        prime=2;
-        while((primecount-->0)&&(n>1)){
-            expo=0;
-            while(n%prime==0){
-                expo++;
-                n/=prime;
-            }
-            *curexponent++=expo;
-            prime=*primes++;
+    prime=2;
+    while((primecount-->0)&&(n>1)){
+        expo=0;
+        while(n%prime==0){
+            expo++;
+            n/=prime;
         }
-        *curexponent++=0;
-        *exponents=n;
-        return(exponents);
-    }/*Factorize;*/
+        *curexponent++=expo;
+        prime=*primes++;
+    }
+    *curexponent++=0;
+    *exponents=n;
+    return(exponents);
+}/*Factorize;*/
 
 
-    static void PrintNumbers(integer* list)
-    {
-        while(*list>0){
-            printf("%ld\n",*list++);
-        }
-    }/*PrintNumbers;*/
+static void PrintNumbers(integer* list)
+{
+    while(*list>0){
+        printf("%"FMT_integer"\n",*list++);
+    }
+}/*PrintNumbers;*/
     
     
-    static void PrintFactorization(integer* exponent,integer* primes)
-    {
-            integer     remainder=*exponent++;
+static void PrintFactorization(integer* exponent,integer* primes)
+{
+    integer     remainder=*exponent++;
             
-        while(*exponent>=0){
-            if(*exponent>0){
-                printf("%12ld ^ %ld *\n",*primes,*exponent);
-            }
-            primes++;
-            exponent++;
+    while(*exponent>=0){
+        if(*exponent>0){
+            printf("%12"FMT_integer" ^ %"FMT_integer" *\n",*primes,*exponent);
         }
-        printf("%12c   %ld\n",' ',remainder);
-    }/*PrintFactorization;*/
+        primes++;
+        exponent++;
+    }
+    printf("%12c   %"FMT_integer"\n",' ',remainder);
+}/*PrintFactorization;*/
     
     
-    static void usage(const char* pname)
-    {
-        fprintf(stderr,"%s usage :\n"
+static void usage(const char* pname)
+{
+    fprintf(stderr,"%s usage :\n"
             "%s --next-from | next-from  n  # prints one prime greater than n.\n"
             "%s --to        | to         n  # prints all primes less than n.\n"
             "%s --factorize | factorize  n  # prints the factorization of n.\n",
             pname,pname,pname,pname);
-    }/*usage;*/
+}/*usage;*/
 
 
 int main(int argc,char** argv)
 {
-        integer     n;
-        integer*    primelist;
-        integer*    exponentlist;
+    integer     n;
+    integer*    primelist;
+    integer*    exponentlist;
     
     debug=(0==strcmp(argv[0],"debug"));
     if(argc!=3){
@@ -264,7 +267,7 @@ int main(int argc,char** argv)
     n=atoi(argv[2]);
     if(n<2){
         fprintf(stderr,"%s: the integer argument must be greater than 2.\n",
-            argv[0]);
+                argv[0]);
         return(2);
     }
     if((strcmp(argv[1],"to")||(strcmp(argv[1],"--to")==0))==0){
@@ -286,7 +289,7 @@ int main(int argc,char** argv)
         return(1);
     }
     return(0);
-}/*main.*/
+}/*main*/
 
 
-/*** primes.c                         --                     --          ***/
+/**** THE END ****/

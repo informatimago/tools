@@ -19,7 +19,7 @@ BUGS
 LEGAL
     GPL
     
-    Copyright Pascal Bourguignon 1990 - 2003
+    Copyright Pascal Bourguignon 1990 - 2011
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -113,7 +113,7 @@ LEGAL
                     break;
                 }
                 if(filename[0]!='#'){
-                    l=strlen(filename);
+                    l=(INT32)strlen(filename);
                     loadedfiles[i]=malloc((unsigned)l); 
                     /* (we're removing the newline). */
                     strncpy(loadedfiles[i],filename,(unsigned)(l-1));
@@ -168,7 +168,7 @@ LEGAL
             fd=fopen(loadedfiles[i],"r");
             if(fd!=NIL){
                 fseek(fd,0,SEEK_END);
-                sizes[i]=ftell(fd);
+                sizes[i]=(CARD32)ftell(fd);
                 sizes[MAXFILES]+=sizes[i];
                 fclose(fd);
             }else{

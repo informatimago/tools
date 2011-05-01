@@ -27,7 +27,7 @@ MODIFICATIONS
     
     1994-12-25 <PJB> Creation. 
 LEGAL
-    Copyright Pascal J. Bourguignon 1994 - 2001
+    Copyright Pascal J. Bourguignon 1994 - 2011
 
     GPL
 
@@ -324,7 +324,7 @@ extern "C"{
     {
         if(fFile!=NIL){
             clearerr(fFile);
-            return(fread(buffer,1,bufSize,fFile));
+            return((INT32)fread(buffer,1,bufSize,fFile));
         }else{
             return(-1);
         }
@@ -335,7 +335,7 @@ extern "C"{
     {
         if(fFile!=NIL){
             clearerr(fFile);
-            return(fwrite(buffer,1,bufSize,fFile));
+            return((INT32)fwrite(buffer,1,bufSize,fFile));
         }else{
             return(-1);
         }

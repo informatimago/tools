@@ -30,23 +30,23 @@ MODIFICATIONS
     Revision 1.1  2001/04/27 06:45:11  pascal
     Added to CVS.
     
- * Revision 1.3  1994/07/13  12:12:57  pbo
- * *** empty log message ***
- *
- * Revision 1.3  1994/07/13  12:12:57  pbo
- * *** empty log message ***
- *
- * Revision 1.2  1994/07/13  12:11:43  pbo
- * Transformed C++ comments into C comments.
- *
- * Revision 1.2  1994/07/13  12:11:43  pbo
- * Transformed C++ comments into C comments.
- *
- * Revision 1.1  94/03/28  13:11:16  pascal
- * Initial revision
- * 
+    * Revision 1.3  1994/07/13  12:12:57  pbo
+    * *** empty log message ***
+    *
+    * Revision 1.3  1994/07/13  12:12:57  pbo
+    * *** empty log message ***
+    *
+    * Revision 1.2  1994/07/13  12:11:43  pbo
+    * Transformed C++ comments into C comments.
+    *
+    * Revision 1.2  1994/07/13  12:11:43  pbo
+    * Transformed C++ comments into C comments.
+    *
+    * Revision 1.1  94/03/28  13:11:16  pascal
+    * Initial revision
+    * 
 LEGAL
-    Copyright Pascal J. Bourguignon 1994 - 1994
+    Copyright Pascal J. Bourguignon 1994 - 2011
     All rights reserved.
     This program or any part of it may not be included in any commercial 
     product without the author written permission. It may be used freely for 
@@ -57,41 +57,41 @@ LEGAL
 #include <ctype.h>
 
 extern void* qsort(void* base,size_t nmemb,size_t size,
-            int(*compar)(const void*,const void*));
+                   int(*compar)(const void*,const void*));
 
 
-    static int comparechar(const void* a, const void* b)
-    {
-        return((*((const char*)a))-(*((const char*)b)));
-    }/*comparechar;*/
+static int comparechar(const void* a, const void* b)
+{
+    return((*((const char*)a))-(*((const char*)b)));
+}/*comparechar;*/
     
 
-    static int revcomparechar(const void* a, const void* b)
-    {
-        return((*((const char*)b))-(*((const char*)a)));
-    }/*revcomparechar;*/
+static int revcomparechar(const void* a, const void* b)
+{
+    return((*((const char*)b))-(*((const char*)a)));
+}/*revcomparechar;*/
     
 
-    static void usage(char* pname)
-    {
-        fprintf(stderr,"%s [-b] [-f] [-u] [-r] < input > output\n"
+static void usage(char* pname)
+{
+    fprintf(stderr,"%s [-b] [-f] [-u] [-r] < input > output\n"
             "   -b  Ignore and remove non-graphic characters\n"
             "       (including spaces and tabulations).\n"
             "   -f  Fold upper case letters onto lower case.\n"
             "   -u  leave only one occurence of characters.\n"
             "   -r  Reverse the sense of comparisons.\n",pname);
-    }/*usage;*/
+}/*usage;*/
     
     
 int main(int argc,char** argv)
 {
-        char            buffer[BUFSIZ];
-        unsigned char   maxchar=255;
-        int             blanc=0;
-        int             fold=0;
-        int             unique=0;
-        int(*compar)(const void*,const void*);
-        int             i;
+    char            buffer[BUFSIZ];
+    unsigned char   maxchar=255;
+    int             blanc=0;
+    int             fold=0;
+    int             unique=0;
+    int(*compar)(const void*,const void*);
+    int             i;
         
     compar=comparechar;
     for(i=1;i<argc;i++){
@@ -110,14 +110,14 @@ int main(int argc,char** argv)
     }
     while(fgets(buffer,sizeof(buffer)-1,stdin)){
         if(buffer[0]!='\0'){
-                int             len;
-            len=strlen(buffer);
+            int             len;
+            len=(int)strlen(buffer);
             if(blanc){
                 int         ii,jj;
                 ii=0;
                 for(jj=0;jj<len;jj++){
                     if((' '<(unsigned char)(buffer[jj]))
-                    &&((unsigned char)(buffer[jj])<=maxchar)){
+                       &&((unsigned char)(buffer[jj])<=maxchar)){
                         buffer[ii]=buffer[jj];
                         ii++;
                     }
@@ -154,5 +154,4 @@ int main(int argc,char** argv)
 }/*main;*/
 
 
-
-/*** sortchars.c                      --                     --          ***/
+/**** THE END ****/

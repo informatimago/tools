@@ -18,7 +18,7 @@ MODIFICATIONS
 BUGS
 LEGAL
     GPL
-    Copyright Pascal J. Bourguignon 2002 - 2002
+    Copyright Pascal J. Bourguignon 2002 - 2011
 
     This file is part of xor tool.
 
@@ -81,7 +81,7 @@ LEGAL
 
         while(!feof(inpf)){
 
-            dat_len=fread(dat_buf,sizeof(unsigned char),sizeof(dat_buf),inpf);
+            dat_len=(int)fread(dat_buf,sizeof(unsigned char),sizeof(dat_buf),inpf);
             if(ferror(inpf)){
                 fprintf(stderr,
                         "%s: error while reading input file. ABORTING.\n",
@@ -98,8 +98,10 @@ LEGAL
                             clearerr(keyf);
                             rewind(keyf);
                         }
-                        key_len=fread(key_buf,sizeof(unsigned char),
-                                      sizeof(key_buf),keyf);
+                        key_len=(int)fread(key_buf,
+                                           sizeof(unsigned char),
+                                           sizeof(key_buf),
+                                           keyf);
                         if(ferror(keyf)){
                             fprintf(stderr,
                                     "%s: error while reading key file. "\
@@ -134,8 +136,10 @@ LEGAL
             out_idx=0;
             do{
                 clearerr(outf);
-                out_len=fwrite(dat_buf+out_idx,sizeof(unsigned char),
-                               (unsigned)(dat_len-out_idx),outf);
+                out_len=(int)fwrite(dat_buf+out_idx,
+                                    sizeof(unsigned char),
+                                    (size_t)(dat_len-out_idx),
+                                    outf);
                 out_idx+=out_len;
                 if(ferror(outf)){
                     err_cnt++;
@@ -156,7 +160,7 @@ LEGAL
 
     static void usage(const char* upname)
     {
-        int len=strlen(upname);
+        int len=(int)strlen(upname);
         fprintf(stderr,
                 "%s usage:\n"\
                 "    %s   -k|--key KEY_FILE \\\n"\

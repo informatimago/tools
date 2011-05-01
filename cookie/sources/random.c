@@ -12,7 +12,7 @@ MODIFICATIONS
     1993/08/16 <PJB> Added modulo parameter.
     1993/09/08 <PJB> Used BcRandom instead of random.
 LEGAL
-    Copyright Pascal J. Bourguignon 1992 - 1993
+    Copyright Pascal J. Bourguignon 1992 - 2011
     All rights reserved.
     This program may not be included in any commercial product without the 
     author written permission. It may be used freely for any non-commercial 
@@ -21,10 +21,10 @@ LEGAL
 #include <BcRandom.h>
 #include <BcImplementation.h>
 
-    static void Usage(char* pname)
-    {
-        fprintf(stderr,"Usage:\n\t%s [ <module> ]\n",pname);
-    }/*Usage*/
+static void Usage(char* pname)
+{
+    fprintf(stderr,"Usage:\n\t%s [ <module> ]\n",pname);
+}/*Usage*/
     
 int main(int argc,char** argv)
 {
@@ -32,11 +32,11 @@ int main(int argc,char** argv)
         
     switch(argc){
     case 1:
-        printf("%lu\n",BcRandom_fromfile());
+        printf("%"FMT_CARD32"\n",BcRandom_fromfile());
         break;
     case 2:
         if((1==sscanf(argv[1],"%u",&n))&&(n>0)){
-            printf("%lu\n",BcRandom_fromfile()%n);
+            printf("%"FMT_CARD32"\n",BcRandom_fromfile()%n);
         }else{
             Usage(argv[0]);
             return(1);
@@ -50,4 +50,4 @@ int main(int argc,char** argv)
 }/*main*/
 
 
-/*** random.c                         --                     --          ***/
+/**** THE END ****/

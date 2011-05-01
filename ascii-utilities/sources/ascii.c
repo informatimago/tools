@@ -47,7 +47,7 @@ MODIFICATIONS
                      (so this may be locale dependent too).
 LEGAL
     GPL
-    Copyright Pascal J. Bourguignon 1991 - 2003
+    Copyright Pascal J. Bourguignon 1991 - 2011
 
     This file is part of PJB ASCII UTILITIES.
 

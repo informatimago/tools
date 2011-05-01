@@ -14,7 +14,7 @@ MODIFICATIONS
    
     1995-11-05 <PJB> Creation. 
 LEGAL
-    Copyright Pascal J. Bourguignon 1995 - 2001
+    Copyright Pascal J. Bourguignon 1995 - 2011
 
     GPL
 
@@ -50,244 +50,239 @@ extern "C"{
 #include BpClass_hh
 #include BcImplementation_h
 
-    static const char rcsid[]="$Id";
+static const char rcsid[]="$Id";
 
 // birth and death:
 
-    typedef enum {
-        State_closed,State_reading,State_writting,State_opened
-    }               StateT;
+typedef enum {
+    State_closed,State_reading,State_writting,State_opened
+}               StateT;
         
 
-    CONSTRUCTOR(MfLink)
-    {
-        BpClass_PLUG(MfLink);
-        state=State_closed;
-    }//MfLink;
+CONSTRUCTOR(MfLink)
+{
+    BpClass_PLUG(MfLink);
+    state=State_closed;
+}//MfLink;
         
     
-    DESTRUCTOR(MfLink)
-    {
-    }//~MfLink;
+DESTRUCTOR(MfLink)
+{
+}//~MfLink;
 
 
 // override of BpObject methods:
 
-    METHOD(MfLink,makeBrother,(void),BpObject*)
-    {
-        return(NEW(MfLink));
-    }//makeBrother;
+METHOD(MfLink,makeBrother,(void),BpObject*)
+{
+    return(NEW(MfLink));
+}//makeBrother;
 
 
-    METHOD(MfLink,printOnLevel,(FILE* file,CARD32 level),void)
-    {
-        MfLink_SUPER::printOnLevel(file,level);
-//  PRINTONLEVEL(file,level,"%s",NEWFIELD,NEWFIELD);
-    }//printOnLevel;
+METHOD(MfLink,printOnLevel,(FILE* file,CARD32 level),void)
+{
+    MfLink_SUPER::printOnLevel(file,level);
+    //  PRINTONLEVEL(file,level,"%s",NEWFIELD,NEWFIELD);
+}//printOnLevel;
 
     
 // override of MfNode methods:
 
 
-    METHOD(MfLink,exists,(void),BOOLEAN)
-    {
-        return(TRUE);
-    }//exists;
+METHOD(MfLink,exists,(void),BOOLEAN)
+{
+    return(TRUE);
+}//exists;
     
     
-    METHOD(MfLink,create,(void),BOOLEAN)
-    {
-        state=State_closed;
-        return(TRUE);
-    }//create;
+METHOD(MfLink,create,(void),BOOLEAN)
+{
+    state=State_closed;
+    return(TRUE);
+}//create;
     
     
-    METHOD(MfLink,open,(const char* omode),BOOLEAN)
-    {
-        switch(*omode){
-        case 'r':
-            state=State_reading;
-            fEof=readlink(pathName()->string(),linkbuf,BUFSIZ);
-            if(fEof<0){
-                fEof=0;
-            }
-            break;
-        case 'w':
-            state=State_writting;
+METHOD(MfLink,open,(const char* omode),BOOLEAN)
+{
+    switch(*omode){
+    case 'r':
+        state=State_reading;
+        fEof=(INT32)readlink(pathName()->string(),linkbuf,BUFSIZ);
+        if(fEof<0){
             fEof=0;
-            break;
-        default:
-            return(FALSE);
         }
-        position=0;
+        break;
+    case 'w':
+        state=State_writting;
+        fEof=0;
+        break;
+    default:
+        return(FALSE);
+    }
+    position=0;
+    fSize=fEof;
+    return(TRUE);
+}//open;
+    
+    
+METHOD(MfLink,read,(void* buffer,INT32 bufSize),INT32)
+{
+    if(state==State_reading){
+        if(bufSize>fEof-position){
+            bufSize=fEof-position;
+        }
+        memcpy(buffer,linkbuf+position,bufSize);
+        position+=bufSize;
+        return(bufSize);
+    }else{
+        return(0);
+    }
+}//read;
+    
+    
+METHOD(MfLink,write,(void* buffer,INT32 bufSize),INT32)
+{
+    if(state==State_writting){
+        if(bufSize>BUFSIZ-1-position){
+            bufSize=BUFSIZ-1-position;
+        }
+        memcpy(linkbuf+position,buffer,bufSize);
+        position+=bufSize;
+        fEof=position;
         fSize=fEof;
+        return(bufSize);
+    }else{
+        return(0);
+    }
+}//write;
+    
+    
+METHOD(MfLink,seek,(INT32 newPosition),INT32)
+{
+    return(-1);
+}//seek;
+    
+    
+METHOD(MfLink,eof,(void),BOOLEAN)
+{
+    if(state==State_reading){
+        return(fEof==position);
+    }else{
         return(TRUE);
-    }//open;
+    }
+}//eof;
     
     
-    METHOD(MfLink,read,(void* buffer,INT32 bufSize),INT32)
-    {
-        if(state==State_reading){
-            if(bufSize>fEof-position){
-                bufSize=fEof-position;
-            }
-            memcpy(buffer,linkbuf+position,bufSize);
-            position+=bufSize;
-            return(bufSize);
-        }else{
-            return(0);
+METHOD(MfLink,close,(void),void)
+{
+    if(state==State_writting){
+        linkbuf[fEof]='\0';
+        while((fEof>0)
+              &&((linkbuf[fEof-1]=='\n')||(linkbuf[fEof-1]=='\r'))){
+            fEof--;
         }
-    }//read;
-    
-    
-    METHOD(MfLink,write,(void* buffer,INT32 bufSize),INT32)
-    {
-        if(state==State_writting){
-            if(bufSize>BUFSIZ-1-position){
-                bufSize=BUFSIZ-1-position;
-            }
-            memcpy(linkbuf+position,buffer,bufSize);
-            position+=bufSize;
-            fEof=position;
-            fSize=fEof;
-            return(bufSize);
-        }else{
-            return(0);
+        linkbuf[fEof]='\0';
+        if(fEof>0){
+            unlink(pathName()->string());
+            int r=symlink(linkbuf,pathName()->string());
+            (void)r;
         }
-    }//write;
+    }
+    state=State_closed;
+}//close;
     
     
-    METHOD(MfLink,seek,(INT32 newPosition),INT32)
-    {
-        return(-1);
-    }//seek;
-    
-    
-    METHOD(MfLink,eof,(void),BOOLEAN)
-    {
-        if(state==State_reading){
-            return(fEof==position);
-        }else{
-            return(TRUE);
+METHOD(MfLink,size,(void),CARD32)
+{
+    if(fSize==MAX_CARD32){
+        struct stat     status;
+        BpString*       fname=NEW(BpString);
+        pathNameGet(fname);
+        if(lstat(fname->string(),&status)==0){
+            fSize=(CARD32)status.st_size;
         }
-    }//eof;
+    }
+    return(fSize);
+}//size;
     
     
-    METHOD(MfLink,close,(void),void)
-    {
-        if(state==State_writting){
-            linkbuf[fEof]='\0';
-            while((fEof>0)
-            &&((linkbuf[fEof-1]=='\n')||(linkbuf[fEof-1]=='\r'))){
-                fEof--;
-            }
-            linkbuf[fEof]='\0';
-            if(fEof>0){
-                unlink(pathName()->string());
-                symlink(linkbuf,pathName()->string());
-            }
-        }
-        state=State_closed;
-    }//close;
+METHOD(MfLink,copyToDos,
+       (MfNode* dDir,BpString* dName,MfMode* dMode,BOOLEAN printIt),void)
+{
+    MfFile*     theCopy;
     
-    
-    METHOD(MfLink,size,(void),CARD32)
-    {
-        if(fSize==MAX_CARD32){
-                struct stat     status;
-                BpString*       fname=NEW(BpString);
-            pathNameGet(fname);
-            if(lstat(fname->string(),&status)==0){
-                fSize=status.st_size;
-            }
-        }
-        return(fSize);
-    }//size;
-    
-    
-    METHOD(MfLink,copyToDos,
-           (MfNode* dDir,BpString* dName,MfMode* dMode,BOOLEAN printIt),void)
-    {
-        MfFile*     theCopy;
-    
-        if(!(dDir->isKindOfClassNamed("MfDirectory"))){
-            fprintf(stderr,"dDir is not a MfDirectory in MfLink::copyToDos, "
-                    "but is %s!\n",dDir->className());
-            return;
-        }
-        theCopy=((MfDirectory*)dDir)->newFile();
-        theCopy->holderSet(0,dDir);
-        theCopy->nameSet(dName);
-        theCopy->modeSet(dMode);
-        if(printIt){
-            printf("echo %s >  %s\n",
-                   this->pathName()->shellQuoted()->string(),
-                   theCopy->pathName()->shellQuoted()->string());
-            printf("chmod %04u %s\n",theCopy->mode()->mode(),
-                   theCopy->pathName()->shellQuoted()->string());
-        }else{
-            theCopy->copyFileFrom(this);
-        }
-    }//copyToDos;
+    if(!(dDir->isKindOfClassNamed("MfDirectory"))){
+        fprintf(stderr,"dDir is not a MfDirectory in MfLink::copyToDos, "
+                "but is %s!\n",dDir->className());
+        return;
+    }
+    theCopy=((MfDirectory*)dDir)->newFile();
+    theCopy->holderSet(0,dDir);
+    theCopy->nameSet(dName);
+    theCopy->modeSet(dMode);
+    if(printIt){
+        printf("echo %s >  %s\n",
+               this->pathName()->shellQuoted()->string(),
+               theCopy->pathName()->shellQuoted()->string());
+        printf("chmod %04u %s\n",theCopy->mode()->mode(),
+               theCopy->pathName()->shellQuoted()->string());
+    }else{
+        theCopy->copyFileFrom(this);
+    }
+}//copyToDos;
     
     
 
-    METHOD(MfLink,copyToUnix,
-           (MfNode* uDir,BpString* uName,MfMode* uMode,BOOLEAN printIt),void)
-    {
-        MfLink*     theCopy;
+METHOD(MfLink,copyToUnix,
+       (MfNode* uDir,BpString* uName,MfMode* uMode,BOOLEAN printIt),void)
+{
+    MfLink*     theCopy;
     
-        if(!(uDir->isKindOfClassNamed("MfDirectory"))){
-            fprintf(stderr,"uDir is not a MfDirectory in MfLink::copyToDos, "
-                    "but is %s!\n",uDir->className());
-            return;
-        }
-        theCopy=((MfDirectory*)uDir)->newLink();
-        theCopy->holderSet(0,uDir);
-        theCopy->nameSet(uName);
-        theCopy->modeSet(uMode);
-        if(printIt){
-            printf("cp %s %s\n",this->pathName()->shellQuoted()->string(),
-                   theCopy->pathName()->shellQuoted()->string());
-        }else{
-            theCopy->copyFileFrom(this);
-        }
-    }//copyToUnix;
+    if(!(uDir->isKindOfClassNamed("MfDirectory"))){
+        fprintf(stderr,"uDir is not a MfDirectory in MfLink::copyToDos, "
+                "but is %s!\n",uDir->className());
+        return;
+    }
+    theCopy=((MfDirectory*)uDir)->newLink();
+    theCopy->holderSet(0,uDir);
+    theCopy->nameSet(uName);
+    theCopy->modeSet(uMode);
+    if(printIt){
+        printf("cp %s %s\n",this->pathName()->shellQuoted()->string(),
+               theCopy->pathName()->shellQuoted()->string());
+    }else{
+        theCopy->copyFileFrom(this);
+    }
+}//copyToUnix;
 
 
 
-    METHOD(MfLink,symLinkToDos,
-           (MfNode* dDir,BpString* dName,MfMode* dMode,BOOLEAN printIt),void)
-    {
-        MfLink_SUPER::symLinkToDos(dDir,dName,dMode,printIt);
-    }//symLinkToDos;
+METHOD(MfLink,symLinkToDos,
+       (MfNode* dDir,BpString* dName,MfMode* dMode,BOOLEAN printIt),void)
+{
+    MfLink_SUPER::symLinkToDos(dDir,dName,dMode,printIt);
+}//symLinkToDos;
 
 
-    METHOD(MfLink,symLinkToUnix,
-           (MfNode* uDir,BpString* uName,MfMode* uMode,BOOLEAN printIt),void)
-    {
-        MfLink_SUPER::symLinkToUnix(uDir,uName,uMode,printIt);
-    }//symLinkToUnix;
+METHOD(MfLink,symLinkToUnix,
+       (MfNode* uDir,BpString* uName,MfMode* uMode,BOOLEAN printIt),void)
+{
+    MfLink_SUPER::symLinkToUnix(uDir,uName,uMode,printIt);
+}//symLinkToUnix;
 
 
-    METHOD(MfLink,hardLinkToDos,
-           (MfNode* dDir,BpString* dName,MfMode* dMode,BOOLEAN printIt),void)
-    {
-        MfLink_SUPER::hardLinkToDos(dDir,dName,dMode,printIt);
-    }//hardLinkToDos;
+METHOD(MfLink,hardLinkToDos,
+       (MfNode* dDir,BpString* dName,MfMode* dMode,BOOLEAN printIt),void)
+{
+    MfLink_SUPER::hardLinkToDos(dDir,dName,dMode,printIt);
+}//hardLinkToDos;
 
 
-    METHOD(MfLink,hardLinkToUnix,
-           (MfNode* uDir,BpString* uName,MfMode* uMode,BOOLEAN printIt),void)
-    {
-        MfLink_SUPER::hardLinkToUnix(uDir,uName,uMode,printIt);
-    }//hardLinkToUnix;
+METHOD(MfLink,hardLinkToUnix,
+       (MfNode* uDir,BpString* uName,MfMode* uMode,BOOLEAN printIt),void)
+{
+    MfLink_SUPER::hardLinkToUnix(uDir,uName,uMode,printIt);
+}//hardLinkToUnix;
 
 
-// MfLink methods:
-
-    
-
-//END MfLink.
-
-/*** MfLink.cc                        -- 2003-12-01 04:59:03 -- pascal   ***/
+//// THE END ////

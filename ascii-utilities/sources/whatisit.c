@@ -42,7 +42,7 @@ MODIFICATIONS
     Added RCS keywords.
 
 LEGAL
-    Copyright Pascal J. Bourguignon 1993 - 1993
+    Copyright Pascal J. Bourguignon 1993 - 2011
     All rights reserved.
     This program or any part of it may not be included in any commercial 
     product without the author written permission. It may be used freely for 
@@ -147,7 +147,7 @@ binaryCount,asciiCount,macintoshCount,nextCount,size);
         if(fseek(file,0,SEEK_END)<0){
             return(NULL);
         }else{
-            (*size)=ftell(file);
+            (*size)=(INT32)ftell(file);
             if(fseek(file,0,SEEK_SET)<0){
                 return(NULL);
             }else{
@@ -186,7 +186,7 @@ int main(int argc,char** argv)
         if(strcmp(argv[i],"-v")==0){
             printCount=1;
         }else{
-            l=strlen(argv[i]);
+            l=(INT32)strlen(argv[i]);
             if(l>maxlen){
                 maxlen=l;
             }
@@ -212,7 +212,7 @@ int main(int argc,char** argv)
                     free(buffer);
                     if(printCount){
                         fprintf(stdout,
-                                "%-*s : %-12s %8ld %8ld %8ld %8ld %10ld\n",
+                                "%-*s : %-12s %8"FMT_INT32" %8"FMT_INT32" %8"FMT_INT32" %8"FMT_INT32" %10"FMT_INT32"\n",
                                 maxlen,argv[i],KindLabel[k],
                                 binaryCount,asciiCount,macintoshCount,
                                 nextCount,size);

@@ -13,7 +13,7 @@ BUGS
     Please report them to <pjb@informatimago.com>
     - Implementation of write_string is shamefull.
 LEGAL
-    Copyright Pascal J. Bourguignon 2000 - 2000
+    Copyright Pascal J. Bourguignon 2000 - 2011
 
     GPL
     This file is part of the lgetvalue utility.

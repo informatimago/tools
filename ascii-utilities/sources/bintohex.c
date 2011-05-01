@@ -38,7 +38,7 @@ MODIFICATIONS
 LEGAL
     GPL
     
-    Copyright Pascal Bourguignon 1993 - 1993
+    Copyright Pascal Bourguignon 1993 - 2011
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -104,8 +104,8 @@ int main(int argc,char** argv)
 {
     CARD8       buffer[16*1024];
     char        outbuf[128];
-    INT32       rsize;
-    INT32       wsize;
+    size_t      rsize;
+    size_t      wsize;
     INT32       isize;
     INT32       i;
     INT32       produit;
@@ -115,29 +115,31 @@ int main(int argc,char** argv)
         unsigned char byte;
         do{
             if(read(0,&byte,1)){
+                ssize_t r;
                 int h=byte>>4;
                 int l=byte&0xF;
                 outbuf[0]=hihex[h];
                 outbuf[1]=hihex[l];
                 outbuf[2]=' ';
-                write(1,outbuf,3);
+                r=write(1,outbuf,3);
+                (void)r;
             }
         }while(1);/* TODO: EOF! */
     }else{
         isize=0;
         rsize=fread(buffer,1,sizeof(buffer),stdin);
         while(rsize>0){
-            isize+=rsize;
+            isize=isize+(INT32)rsize;
             i=0;
             while(rsize>0){
-                bintohex(buffer+i,rsize,outbuf,16,0,1,1,&consomme,&produit);
+                bintohex(buffer+i,(INT32)rsize,outbuf,16,0,1,1,&consomme,&produit);
                 i+=consomme;
-                rsize-=consomme;
+                rsize=rsize-(size_t)consomme;
                 wsize=fwrite(outbuf,1,(unsigned)produit,stdout);
                 if(wsize!=produit){
                     fprintf(stderr,
                             "%s error: error while writting output stream "
-                            "(%ld/%ld).\n",argv[0],produit,wsize);
+                            "(%"FMT_INT32"/%"FMT_INT64").\n",argv[0],produit,wsize);
                     return(1);
                 }
             }
@@ -145,7 +147,7 @@ int main(int argc,char** argv)
         }
         if(!feof(stdin)){
             fprintf(stderr,"%s error: while reading input stream\n"
-                    "\t%ld bytes read.\n",argv[0],isize);
+                    "\t%"FMT_INT32" bytes read.\n",argv[0],isize);
             return(1); 
         }
     }

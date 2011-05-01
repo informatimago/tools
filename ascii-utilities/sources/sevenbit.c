@@ -38,7 +38,7 @@ MODIFICATIONS
     Added RCS keywords.
 
 LEGAL
-    Copyright Pascal J. Bourguignon 1993 - 1993
+    Copyright Pascal J. Bourguignon 1993 - 2011
     All rights reserved.
     This program or any part of it may not be included in any commercial 
     product without the author written permission. It may be used freely for 
@@ -131,7 +131,7 @@ LEGAL
     {
         int i;
         char* escapeStr=malloc(2);
-        escapeStr[0]=escapeCh;
+        escapeStr[0]=(char)escapeCh;
         escapeStr[1]='\0';
         for(i=0;i<appr->count;i++){
             appr->approximations[i].asciiApproximation=escapeStr;
@@ -150,14 +150,13 @@ LEGAL
 
         l=0;
         for(i=0;i<appr->count;i++){
-            l+=strlen(appr->approximations[i].asciiApproximation)+1;
+            l+=(int)strlen(appr->approximations[i].asciiApproximation)+1;
         }
 
         copy=(BenApproximationTableT*)malloc(sizeof(BenApproximationTableT));
         copy->count=appr->count;
-        copy->approximations=(BenApproximationT*)
-            malloc(sizeof(BenApproximationT)*(copy->count+1));
-        copyData=(char*)malloc(sizeof(char)*l);
+        copy->approximations=(BenApproximationT*)malloc(sizeof(BenApproximationT)*(size_t)(copy->count+1));
+        copyData=(char*)malloc(sizeof(char)*(size_t)l);
 
         for(i=0;i<copy->count;i++){
             copy->approximations[i].charName=appr->approximations[i].charName;
@@ -231,32 +230,32 @@ LEGAL
             
         b=fgetc(in);
         if(b==EOF){
-            buffer[0]=escapeChar;
-            buffer[1]=numberChar;
+            buffer[0]=(unsigned char)escapeChar;
+            buffer[1]=(unsigned char)numberChar;
             buffer[2]='\0';
             return(buffer);
         }
-        buffer[0]=b;
+        buffer[0]=(unsigned char)b;
         
         b=fgetc(in);
         if(b==EOF){
             buffer[2]=buffer[0];
-            buffer[0]=escapeChar;
-            buffer[1]=numberChar;
+            buffer[0]=(unsigned char)escapeChar;
+            buffer[1]=(unsigned char)numberChar;
             buffer[3]='\0';
             return(buffer);
         }
-        buffer[1]=b;
+        buffer[1]=(unsigned char)b;
         buffer[2]='\0';
         
         if(sscanf((const char*)buffer,"%x",&u)!=1){
             buffer[2]=buffer[0];
             buffer[3]=buffer[1];
-            buffer[0]=escapeChar;
-            buffer[1]=numberChar;
+            buffer[0]=(unsigned char)escapeChar;
+            buffer[1]=(unsigned char)numberChar;
             buffer[4]='\0';
         }else{
-            buffer[0]=u;
+            buffer[0]=(unsigned char)u;
             buffer[1]='\0';
         }
         return(buffer);
@@ -313,15 +312,15 @@ LEGAL
                 }else if(b==escapeChar){
                     fputc(escapeChar,out);
                 }else{
-                    buffer[0]=escapeChar;
-                    buffer[1]=b;
+                    buffer[0]=(char)escapeChar;
+                    buffer[1]=(char)b;
                     b=fgetc(in);
                     if(b==EOF){
                         buffer[2]='\0';
                         fputs(buffer,out);
                         continue;
                     }else{
-                        buffer[2]=b;
+                        buffer[2]=(char)b;
                         buffer[3]='\0';                 
                         fputs(convtoeight(buffer),out);
                     }
@@ -398,11 +397,11 @@ LEGAL
             const char** codeNames=BenEncodingTableNames();
             const char* message="Available encodings are: ";
             int code=0;
-            int col=strlen(message)+strlen(codeNames[code])+2;
+            int col=(int)strlen(message)+(int)strlen(codeNames[code])+2;
             fprintf(stderr,"%s%s",message,codeNames[code]);
             code++;
             while(codeNames[code]!=0){
-                col+=strlen(codeNames[code])+2;
+                col+=(int)strlen(codeNames[code])+2;
                 if(col>72){
                     fprintf(stderr,",\n    %s",codeNames[code]);
                     col-=68;

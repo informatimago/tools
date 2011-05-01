@@ -12,7 +12,7 @@
 #LEGAL
 #    GPL
 #    
-#    Copyright Pascal Bourguignon 1993 - 1993
+#    Copyright Pascal Bourguignon 1993 - 2011
 #    
 #    This program is free software; you can redistribute it and/or
 #    modify it under the terms of the GNU General Public License

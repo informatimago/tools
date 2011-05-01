@@ -26,7 +26,7 @@ MODIFICATIONS
 BUGS
     Please report them to <pjb@informatimago.com>
 LEGAL
-    Copyright Pascal J. Bourguignon 2000 - 2000
+    Copyright Pascal J. Bourguignon 2000 - 2011
 
     GPL
     This file is part of the lgetvalue utility.
@@ -76,7 +76,7 @@ LEGAL
         char buffer2[BUFFER_SIZE];
         char key[BUFFER_SIZE];
         char value[BUFFER_SIZE];
-        short success;
+        int success;
 
 #ifdef DEBUG
         fprintf(stderr,"FS=\"%c\"; KF=%d; VF=%d;\n",
@@ -135,7 +135,7 @@ LEGAL
 
     void usage(const char* pname)
     {
-        int plen=strlen(pname);
+        size_t plen=strlen(pname);
         fprintf(stderr,"%s usage:\n",pname);
         fprintf(stderr,
                 "  %s [-h|--help|--field-separator=C|-tC\n"\
@@ -144,7 +144,7 @@ LEGAL
                 "\n"\
                 " The default separator is '|', the default key position is 1,"\
                 " and the default value position is 2 (counting from 1).\n",
-                pname,plen," ",plen," ");
+                pname,(int)plen," ",(int)plen," ");
     }/*usage*/
 
 

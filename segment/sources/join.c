@@ -21,7 +21,7 @@ MODIFICATIONS
     1990/04/28 <PJB> Creation.
     1993/12/18 <PJB> Updated.
 LEGAL
-    Copyright Pascal J. Bourguignon 1990 - 1993
+    Copyright Pascal J. Bourguignon 1990 - 2011
     All rights reserved.
     This program may not be included in any commercial product without the 
     author written permission. It may be used freely for any non-commercial 
@@ -54,11 +54,11 @@ static void MakeSegName(char* wholename,CARD32 n,char* segname){
     CARD16      len;
     
     strcpy(segname,wholename);
-    len=strlen(segname);
+    len=(CARD16)strlen(segname);
     if(len>FileNameSize-4){
         len=FileNameSize-4;
     }
-    sprintf(num,"%03lu",n);
+    sprintf(num,"%03"FMT_CARD32"",n);
     segname[len]='.';       len++;
     segname[len]=num[0];    len++;
     segname[len]=num[1];    len++;
@@ -99,10 +99,11 @@ static void Join(char* wholename,BOOLEAN rmflag,BOOLEAN progress,BOOLEAN debug){
             clearerr(segfile);
             segsize=0;
             while(!feof(segfile)){
-                csize=fread(buffer,1,BufferSize,segfile);
+                size_t r;
+                csize=(CARD32)fread(buffer,1,BufferSize,segfile);
                 if(debug){
                     fprintf(stdout,"$ in while\n");
-                    fprintf(stdout,"$ csize=%lu\n",csize);
+                    fprintf(stdout,"$ csize=%"FMT_CARD32"\n",csize);
                     fflush(stdout);
                 }
                 if(ferror(segfile)){
@@ -111,7 +112,7 @@ static void Join(char* wholename,BOOLEAN rmflag,BOOLEAN progress,BOOLEAN debug){
                     fclose(segfile);
                     break;
                 }
-                fwrite(buffer,1,csize,wholefile);
+                r=fwrite(buffer,1,csize,wholefile);
                 if(ferror(segfile)){
                     fprintf(stderr,"### Write error on %s: skipping.\n",wholename);
                     fflush(stderr);
@@ -121,14 +122,14 @@ static void Join(char* wholename,BOOLEAN rmflag,BOOLEAN progress,BOOLEAN debug){
                 fflush(wholefile);
                 segsize+=csize;
                 if(debug){
-                    fprintf(stdout,"$ csize=%lu\n",csize);
-                    fprintf(stdout,"$ segsize=%lu\n",segsize);
+                    fprintf(stdout,"$ csize=%"FMT_CARD32"\n",csize);
+                    fprintf(stdout,"$ segsize=%"FMT_CARD32"\n",segsize);
                     fflush(stdout);
                 }
             }
             fclose(segfile);
             if(progress){
-                fprintf(stdout,"# %s contains %lu bytes.\n",segname,segsize);
+                fprintf(stdout,"# %s contains %"FMT_CARD32" bytes.\n",segname,segsize);
                 fflush(stdout);
             }
             wholesize+=segsize;
@@ -151,7 +152,7 @@ static void Join(char* wholename,BOOLEAN rmflag,BOOLEAN progress,BOOLEAN debug){
         }/*while*/
         fclose(wholefile);
         if(progress){
-            fprintf(stdout,"# %s contains %lu bytes.\n",wholename,wholesize);
+            fprintf(stdout,"# %s contains %"FMT_CARD32" bytes.\n",wholename,wholesize);
             fflush(stdout);
         }
     }   
@@ -200,14 +201,14 @@ int main(int argc, char *argv[])
 
     param=1;
     while((param<argc)&&(!file)){
-        length=strlen(argv[param]);
+        length=(CARD16)strlen(argv[param]);
         if(*argv[param] != '-'){
             /* file ... */
             file=TRUE;
             break;
         }
 
-        length=strlen(argv[param]);
+        length=(CARD16)strlen(argv[param]);
         if(length!=2){
           illegal_option:
             fprintf(stderr,

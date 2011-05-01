@@ -13,7 +13,7 @@ MODIFICATIONS
    Initial revision
    
 LEGAL
-    Copyright Pascal J. Bourguignon 1994 - 2001
+    Copyright Pascal J. Bourguignon 1994 - 2011
 
     GPL
 

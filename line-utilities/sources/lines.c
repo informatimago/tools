@@ -13,7 +13,7 @@ BUGS
     Please report them to <pjb@informatimago.com>
     - Implementation of write_string is shamefull.
 LEGAL
-    Copyright Pascal J. Bourguignon 2000 - 2000
+    Copyright Pascal J. Bourguignon 2000 - 2011
 
     GPL
     This file is part of the lgetvalue utility.
@@ -57,7 +57,7 @@ LEGAL
 
     void chop_nl(char* line)
     {
-        int i=strlen(line);
+        size_t i=strlen(line);
         while((i>0)&&((line[i-1]=='\n')||(line[i-1]=='\r'))){
             i--;
         }

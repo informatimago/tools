@@ -31,7 +31,7 @@ MODIFICATIONS
 BUGS
     - Should allow skipping bytes at the end and in the middle of the file. 
 LEGAL
-    Copyright Pascal J. Bourguignon 1993 - 1993
+    Copyright Pascal J. Bourguignon 1993 - 2011
     All rights reserved.
     This program or any part of it may not be included in any commercial 
     product without the author written permission. It may be used freely for 
@@ -43,33 +43,33 @@ LEGAL
 #include <BcTypes.h>
 
     
-    static INT32 copy(FILE* input,FILE* output)
-    {
-            char            buffer[16*1024];
-            char*           p;
-            size_t          rsize;
-            size_t          wsize;
+static INT32 copy(FILE* input,FILE* output)
+{
+    char            buffer[16*1024];
+    char*           p;
+    size_t          rsize;
+    size_t          wsize;
 #define buffersize  (sizeof(buffer)/sizeof(char))
-        errno=0;
+    errno=0;
+    rsize=fread(buffer,sizeof(char),buffersize,input);
+    while(rsize>0){
+        wsize=0;
+        p=buffer;
+        do{
+            p+=(wsize/sizeof(char));
+            rsize-=wsize;
+            wsize=fwrite(buffer,sizeof(char),rsize,output);
+        }while(wsize<rsize);
         rsize=fread(buffer,sizeof(char),buffersize,input);
-        while(rsize>0){
-            wsize=0;
-            p=buffer;
-            do{
-                p+=(wsize/sizeof(char));
-                rsize-=wsize;
-                wsize=fwrite(buffer,sizeof(char),rsize,output);
-            }while(wsize<rsize);
-            rsize=fread(buffer,sizeof(char),buffersize,input);
-        }
-        return(errno);
-    }/*copy.*/
+    }
+    return(errno);
+}/*copy.*/
     
     
 int main(int argc,char** argv)
 {
-        char        c;
-        INT32       count;
+    char        c;
+    INT32       count;
         
     if(argc!=2){
         fprintf(stderr,"Usage:\n\t%s <skipcount>\n",argv[0]);
@@ -77,12 +77,12 @@ int main(int argc,char** argv)
     }
     count=atoi(argv[1]);
     while(count>0){
-        c=getchar();
+        c=(char)getchar();
         count--;
     }
     return(copy(stdin,stdout));
 }/*main.*/
 
 
+/**** THE END ****/
 
-/*** binskip.c                        --                     --          ***/
