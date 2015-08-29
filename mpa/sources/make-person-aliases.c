@@ -367,7 +367,7 @@ static void string_tolower(char* word)
 {
     while(*word!='\0'){
         if(isupper(*word)){
-            *word=tolower(*word);
+            *word=(char)tolower(*word);
         }
         word++;
     }
@@ -377,7 +377,7 @@ static void string_tolower(char* word)
 static void string_capitalize(char* word)
 {
     if(islower(*word)){
-        *word=toupper(*word);
+        *word=(char)toupper(*word);
     }
     string_tolower(word+1);
 }/*string_capitalize*/

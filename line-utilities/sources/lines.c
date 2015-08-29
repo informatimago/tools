@@ -67,7 +67,7 @@ LEGAL
             i++;
         }
         if(i>0){
-            strcmp(line,line+i);
+            strcpy(line,line+i);
         }
     }/*chop_nl*/
 

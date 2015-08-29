@@ -35,9 +35,12 @@ LEGAL
     
 extern "C"{
 #include <stdio.h>
+#include <limits.h>
+#ifndef MACOSX
 #include <values.h>
+#endif
+#define BIT_PER_BYTE    (CHAR_BIT)
 }
-#define BIT_PER_BYTE    (CHARBITS)
 
 // typedef char bool;
 #define true ((bool)(0==0))

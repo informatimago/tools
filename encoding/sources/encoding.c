@@ -109,6 +109,8 @@ LEGAL
 #include <string.h>
 #include <libgen.h>
 
+#include <unistd.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -116,13 +118,7 @@ LEGAL
 #include <libc.h>
 #endif
 
-#if defined(AIX)
-#include <sys/types.h>
-#include <sys/stat.h>
-#endif
-
-#if defined(linux) || defined(MacOSX)
-#include <unistd.h>
+#if defined(linux) || defined(MACOSX)
 #include <errno.h>
 #else
 extern int      errno;
@@ -398,7 +394,6 @@ int main(int argc,char** argv,char** envp)
     FILE*               fout;
     int                 i;
     int                 err;
-    struct stat         filestatus;
     char                TempName[256];
     BOOLEAN             nooption;
     BOOLEAN             fromIsDetermined;
@@ -613,6 +608,7 @@ int main(int argc,char** argv,char** envp)
                         if(err==0){
                             err=link(TempName,argv[i]);
                             if(err==0){
+                                struct stat filestatus;
                                 err=stat("temp[nema]",&filestatus);
                                 if(err==0){
                                     int r=chown(argv[i],filestatus.st_uid,

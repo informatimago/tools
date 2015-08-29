@@ -109,19 +109,19 @@ LEGAL
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <libgen.h>
+
+#include <unistd.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #if defined(NeXT)
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <libc.h>
 #endif
-#if defined(AIX)
-#include <sys/types.h>
-#include <sys/stat.h>
-#endif
-#if defined(linux)
-#include <unistd.h>
-#include <sys/stat.h>
+
+#if defined(linux) || defined(MACOSX)
+#include <errno.h>
 #endif
 
 #include <concatenate.h>

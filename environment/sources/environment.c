@@ -36,11 +36,13 @@ LEGAL
 ******************************************************************************/
 #include <stdio.h>
 #include <string.h>
-#include <malloc.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <pwd.h>
+#ifndef MACOSX
+#include <malloc.h>
+#endif
 
     const char* pname="environment"; /*default name*/
 

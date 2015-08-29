@@ -129,7 +129,7 @@ int main(int argc,char** argv)
                 int             ii;
                 for(ii=0;ii<len;ii++){
                     if(isupper(buffer[ii])){
-                        buffer[ii]=tolower(buffer[ii]);
+                        buffer[ii]=(char)tolower(buffer[ii]);
                     }
                 }
             }
