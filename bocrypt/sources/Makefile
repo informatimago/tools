@@ -64,7 +64,7 @@ install::
 	ln -s sencrypt $(BINIDIR)/sdecrypt
 
 clean::
-	-rm -f ./test-*.key*
+	-rm -f ./test-*.key* sencrypt sdecrypt
 
 TESTS=test-1 test-2 test-3
 BOKEYS=key3b key4b
