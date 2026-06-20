@@ -1,0 +1,58 @@
+# -*- mode: org -*-
+#+TITLE: misc tools: latent bugs (primes, mpa, random-stat, newmoon, network, geturls)
+#+DATE: 2026-06-20
+
+* TODO [#B] misc tools: latent runtime bugs (these modules build clean)  :primes:mpa:random-stat:newmoon:network:geturls:memory:logic:
+  Full-tree review 2026-06-20 (gcc/g++ 14, strict flags). IMPORTANT: every module
+  below compiles cleanly under the strict build -- these are *latent* runtime
+  bugs, not build-blockers. Verified by building the whole tree against the
+  installed common libs. od-tools, objc-tools, romain, environment, newton and
+  filldisk were reviewed and found essentially clean (no real defects).
+
+** Logic
+
+*** [high] primes/primes.c:273 — '--to' is dead due to an inverted boolean test
+=if((strcmp(argv[1],"to")||(strcmp(argv[1],"--to")==0))==0)=. For =--to=,
+=strcmp(argv[1],"to")= is non-zero so the =||= is truthy and ===0= is false ->
+=--to= falls through to the usage error. (=to= works only by accident.)
+Fix: =((strcmp(argv[1],"to")==0)||(strcmp(argv[1],"--to")==0))=, matching the
+other two option branches.
+
+** Memory safety
+
+*** [high] mpa/make-person-aliases.c:241 — operator-precedence heap under-allocation
+=checkmalloc((sizeof(char*)*comb->size+1))= parses as =sizeof(char*)*size + 1=,
+i.e. =8*size+1= bytes for an array that needs =size+1= pointers
+(=(size+1)*sizeof(char*)=). Writing =currentVector[size]= overflows the heap.
+Fix: =checkmalloc(sizeof(char*)*(comb->size+1))=.
+
+*** [high] random-stat/random-stat.cc:216,217,230,257 — delete on new[] (UB)
+=_lengthCounts[k]=new long[_maxLength]= (and =new long[_currentLength]=) are freed
+with scalar =delete= instead of =delete[]= -> undefined behaviour.
+Fix: =delete[] _lengthCounts[k];= everywhere those arrays are released. (The
+agent also reported OOB writes in =process=/=print=; worth confirming alongside.)
+
+*** [medium] newmoon/newmoon.c:407,409 — negative-modulo array index into name[]
+=buffer[i]=name[(i-xmin)%namemod]=: when =(i-xmin)= is negative the C =%= yields a
+negative index -> OOB read of =name=. The surrounding draw also writes into the
+fixed =buffer[256]= (:360) across an =i= range that should be bounds-checked.
+Fix: use a non-negative modulo (=((i-xmin)%namemod+namemod)%namemod=) and bound
+=i= against =sizeof(buffer)=.
+
+*** [medium] primes/primes.c:66,147,267 — 32-bit sieve overflow + unchecked malloc for large n
+For =n= near INT32_MAX, =n=2*bitsmax*bits_per_integer= recomputes into 32-bit and
+overflows (the author's own comment flags this); =malloc(round4k(bitsmax*4))= is
+unchecked. =atoi(argv[2])= also wraps silently on huge input.
+Fix: 64-bit intermediates, =strtol= with range checks, check malloc.
+
+*** [low] network/network.c & geturls/geturls.c — unchecked malloc (NULL deref on OOM)
+=String_New=/=List_New=/=Network_NewNode= and geturls' allocators deref NULL on
+OOM. No command-injection surface (neither uses system/popen/exec) and input is
+read with bounded =fgets=, so this is the only defect class. Fix: check each
+allocation.
+
+** Health
+These tools build and mostly work. The actionable items are the =--to= parse bug
+(primes), the mpa precedence heap overflow, random-stat's =delete[]= UB, and
+newmoon's negative-modulo index. The rest is defensive hardening (unchecked
+malloc) and a large-input overflow guard in primes.

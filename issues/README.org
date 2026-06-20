@@ -1,0 +1,36 @@
+# -*- mode: org -*-
+#+TITLE: tools — issue tracker
+#+DATE: 2026-06-20
+
+* How this tracker works
+
+Each issue is one file in =issues/open/= (or =issues/closed/= once resolved)
+with the =.issue= extension and an org-mode local-variables line.  When an issue
+is resolved, move it to =issues/closed/= (=git mv=) with a RESOLUTION note and
+tick its TODO -> DONE.
+
+Issues were produced by a full-tree code review on 2026-06-20 (gcc/g++ 14,
+the makedir strict flag set), building every module against the freshly
+reinstalled =common= libraries under =/usr/local/lib=.  Severities: =critical=
+(memory-unsafe or silently wrong), =high=, =medium=, =low=.  All findings below
+are *proposed corrections awaiting review/validation* — nothing has been changed
+in the sources yet.
+
+* Open issues
+
+** Build-blockers + memory/correctness (per module)
+- [[file:open/ascii-utilities.issue][ascii-utilities]]            — lc overlapping strncpy + OOB read, sevenbit/binskip overflow, parity flag bug.
+- [[file:open/dosname.issue][dosname]]                    — C++11 literal-suffix breaks (MfFile, Renamer), unchecked malloc, analyzeRun corruption.
+- [[file:open/cplusinherited.issue][cplusinherited]]             — sprintf "%s" into 256-byte buffers (stack overflow), fread off-by-two, parse bugs.
+- [[file:open/formats.issue][formats]]                    — binhextools install wiring, AppleSingle endianness, bh.c is a no-op stub, orphaned trees.
+- [[file:open/segment-and-line-utilities.issue][segment-and-line-utilities]] — fields strncpy underflow, segment sscanf stack overrun + unchecked fwrite, extractbit1 corruption.
+- [[file:open/bocrypt-cookie-encoding-base.issue][bocrypt-cookie-encoding-base]] — smallcrypt build+loadkey overflow, cookie crash bugs, encoding -from/-to broken, base 0/assert.
+- [[file:open/misc-tools.issue][misc-tools]]                 — primes --to dead, mpa precedence heap overflow, random-stat delete[], newmoon neg-modulo (all build clean).
+
+** Cross-cutting
+- [[file:open/build-system.issue][build-system]]                — hardcoded MAKEDIR, no per-module default, gcc-14 -Werror policy, strict-ISO header guards.
+- [[file:open/common-integration.issue][common-integration]]          — verified link-compatible with the new common; no signature drift; optional BenConvertString migration.
+
+* Closed issues
+
+(none yet)

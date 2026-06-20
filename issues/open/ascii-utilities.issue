@@ -1,0 +1,85 @@
+# -*- mode: org -*-
+#+TITLE: ascii-utilities: build breaks + memory bugs
+#+DATE: 2026-06-20
+
+* TODO [#A] ascii-utilities: gcc-14 build breaks and latent memory bugs  :ascii-utilities:build:memory:
+  Found by a full-tree review on 2026-06-20 (gcc 14, the makedir strict flag
+  set: -Wall -Werror -Wconversion -Wcast-qual -pedantic-errors
+  -Wstrict-prototypes ...). Line numbers verified against current sources.
+  See [[build-system]] (the -Werror policy, =linux= vs =__linux__= guards,
+  =_DEFAULT_SOURCE=) and [[common-integration]] (bclib/benlib usage checked,
+  correct here).
+
+** Build-blockers (-Werror)
+
+*** [critical] lc.c:258 — strncpy with overlapping src/dst is UB
+=strncpy(inbuf,inbuf+start,inlen)= copies the buffer tail down to the front;
+source and destination overlap whenever =start<inlen=. gcc flags
+=-Werror=restrict=; at runtime it is undefined behaviour.
+Fix: =memmove(inbuf,inbuf+start,inlen)=.
+
+*** [critical] sevenbit.c:350 — '%02x' format-overflow into a fixed buffer
+=sprintf(buffer,"%c%c%02x",...)= with =c= typed =int=; the compiler only knows
+=c>127= (range up to INT_MAX) so =%02x= is modelled as 2..8 bytes ->
+=-Werror=format-overflow=. Genuine overflow if =c= ever exceeds 0xFF.
+Fix: mask =c&0xff= / make the value =unsigned char=, or =snprintf=.
+
+*** [high] binskip.c:71 — variable 'c' set but not used
+=c=(char)getchar()= in the skip loop discards the read; never used
+(=-Werror=unused-but-set-variable=).
+Fix: drop =c=, call =getchar();=, and test =EOF= so a short input terminates.
+
+*** [high] lc.c:432 — 'maxlinesize' set but not used (the -s feature is dead)
+=-sSIZE= is parsed into =maxlinesize= but =convert()=/=lc_getline()= never
+truncates: the whole =-s= option is unimplemented.
+Fix: implement the truncation or remove the option and variable.
+
+*** [high] strict-ISO header/guard breakage (lc.c:104, whatisit.c:57, randchar.c:73, parity.c:84)
+- Platform guard =#if defined(linux)||defined(AIX)=; bare =linux= is undefined
+  under =-std=cNN=, so these fall into the non-existent =#include <libc.h>=
+  branch. Use =__linux__=/=__unix__=.
+- lc.c needs =lstat=/=S_IF*= which require =_DEFAULT_SOURCE=.
+- parity.c:84 uses =rindex= (legacy, implicit-declaration under strict ISO).
+  Use =strrchr=.
+See [[build-system]].
+
+** Latent bugs
+
+*** [critical] lc.c:276 — out-of-bounds read of inbuf
+After the scan loop =linefeed[toNone][0]=inbuf[inmark]= and =[inmark+1]= run
+unconditionally; when a line fills the buffer with no CR/LF =inmark==inlen= can
+equal =BufSize=, so =inbuf[BufSize]=/=inbuf[BufSize+1]= read past the array.
+Fix: guard =inmark<inlen= (and =inmark+1<inlen=) before the reads.
+
+*** [high] binskip.c:55 — partial fwrite re-emits from the front of the buffer
+=copy()= advances =p= but always calls =fwrite(buffer,...,rsize)=; a short write
+re-emits already-written bytes, corrupting output / looping.
+Fix: =wsize=fwrite(p,1,rsize,output);= and recompute =rsize=.
+
+*** [medium] parity.c:368 — parity_flag compares a byte to a 2-bit code
+=if(c==parity_byte_find(c))= compares the byte (0..255) to a code (0..3), so it
+flags nearly every byte. Intended: =if(parity_byte_check(c,parity))=.
+
+*** [medium] sevenbit.c:133 / :156 — unchecked malloc + leak in approximation tables
+=malloc(2)= and the three mallocs in =copy_approximation_table= are dereferenced
+with no NULL check; the shared escape string is leaked.
+
+*** [medium] whatisit.c:154 — loadfile mallocs *size with no NULL check
+=malloc(*size)= then =fread(NULL,...)= on OOM / =malloc(0)=. Check the result;
+treat size 0 specially.
+
+*** [low] misc hygiene
+- encoding.c:138 / lc.c MakeTempName — =strcat=/=sprintf= onto fixed
+  =TempName[256]=/=OutputName[BUFSIZ]= from argv paths; use =snprintf=.
+- sortchars.c:59 — local =extern void* qsort(...)= wrong return type (UB);
+  =#include <stdlib.h>=. :131 =isupper(buffer[ii])= with plain =char= is UB;
+  cast =(unsigned char)=.
+- randchar.c — =(int)BcRandom_random(X) % CharListCount= can go negative;
+  keep unsigned.
+- bintohex.c:135 — =spaces=0= makes the column-spacing feature inert; printf
+  =%ld= vs =size_t= (use =%zu=).
+
+** Health
+Build fails on lc/sevenbit/binskip plus the strict guards; the serious latent
+issues are the lc.c overlapping strncpy and OOB inbuf read and binskip's
+partial-write bug. bclib/benlib are used correctly.

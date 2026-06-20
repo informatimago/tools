@@ -1,0 +1,46 @@
+# -*- mode: org -*-
+#+TITLE: common-library integration: status after the 2026-06 common fixes
+#+DATE: 2026-06-20
+
+* TODO [#C] common integration: verified link-compatible; no signature drift  :common:integration:
+  Context: the *common* libraries (bclib, benlib, bjlib, bolib, bplib, bprib,
+  bpcombi) were reviewed and fixed in 2026-06 and reinstalled under
+  =/usr/local/lib=. The concern was that tools linking them might need updates.
+  This issue records the verification.
+
+** Findings
+
+*** [info] The whole tree links against the freshly-installed common libs
+The tree was rebuilt against =/usr/local/lib/{bclib,benlib,bjlib,bolib,bplib,
+bprib,bpcombi}=. There were *no* undefined-reference / signature-mismatch link
+errors attributable to common: the common fixes were behaviour/memory fixes, not
+API/signature changes, so the tools remain source- and link-compatible. All
+build failures found are local to the tools (see the per-module issues).
+
+*** [info] Which tools depend on common
+- ascii-utilities -> benlib, bclib (encoding tables, approximations, BcRandom,
+  BcTypes/FMT_* macros). API use verified correct against the installed headers.
+- encoding -> benlib, bclib, bjlib. Uses =BenEncodingTableNamed/Names=,
+  =BenApproximationTableNamed/Names=, =BenBuildConversionTable= correctly. The
+  module Makefile already carries the bjlib -I/-l paths.
+- dosname -> bplib, bclib (BpString/BpList/BpDict/BpArray). API use verified
+  consistent with the installed headers.
+- cookie, primes -> bclib (BcTypes / helpers).
+- formats -> its own binhexlib plus bplib/bclib/bolib.
+
+*** [low] encoding rolls its own conversion instead of BenConvertString
+encoding.c does not call =BenConvertString= (the function that was just fixed for
+signed-char indexing and a non-advancing loop); it implements its own
+=ConvertEncoding= over =Conversion[c]=, indexing with 0..255 =fgetc= values, so it
+is neither exposed to the old bug nor benefiting from the fix. Optional: migrate
+to =BenConvertString= now that it is correct, to share one code path. Not urgent.
+
+*** [low] tools assume common's unsigned length/index convention
+bplib/bjlib use *unsigned* lengths/indices; the tools mostly mirror this, but the
+=CARD32=<->=INT32= mixing flagged in [[dosname]] will trip =-Wconversion= if that
+warning is kept. This is a tools-side cleanup, not a common change.
+
+** Health
+Integration is sound: no action required for the tools to keep working with the
+new common. The only optional follow-up is consolidating encoding.c onto the
+fixed =BenConvertString=.

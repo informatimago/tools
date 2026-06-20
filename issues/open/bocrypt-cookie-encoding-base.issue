@@ -1,0 +1,85 @@
+# -*- mode: org -*-
+#+TITLE: bocrypt / cookie / encoding / base: build + crash + option bugs
+#+DATE: 2026-06-20
+
+* TODO [#A] bocrypt, cookie, encoding, base: build breaks and crash bugs  :bocrypt:cookie:encoding:base:build:memory:
+  Full-tree review 2026-06-20 (gcc 14, strict flags). bocrypt.c and xor.c are
+  clean and crypto-correct; the problems are concentrated in smallcrypt.c and in
+  the cookie/encoding/base front-ends. See [[build-system]] and
+  [[common-integration]].
+
+** Build-blockers (-Werror)
+
+*** [critical] bocrypt/smallcrypt.c:140,211 — 'keylength' set but not used
+=keylength=(int)strlen(key)= computed but never read in both =encrypt()= and
+=decrypt()=. Crypto note: the cipher loop wraps via =key[keyindex]=='\0'=
+(lines 195/264), so the key IS applied correctly — =keylength= is genuinely dead
+code. Fix: delete it (or use it for the wrap test).
+
+*** [critical] bocrypt/smallcrypt.c:120,125,127,132,153,155,164,298 — index/rindex implicitly declared
+BSD =index=/=rindex= are not in =<string.h>= and absent under strict std.
+Fix: =#include <strings.h>= with =_DEFAULT_SOURCE=, or use =strchr=/=strrchr=.
+
+** Crash bugs (latent; cookie.c compiles clean)
+
+*** [high] cookie/cookie.c:158 — off-by-one reads argv[argc] (NULL) -> segfault
+=for(ii=1;ii<=argc;ii++)= then =strcmp(argv[ii],"--help")=; at =ii==argc=,
+=argv[argc]= is NULL. Crashes whenever any argument is passed (and the loop body
+is empty -- =--help= does nothing). Fix: =ii<argc=.
+
+*** [high] cookie/cookie.c:88 — getdefaultfilenames derefs the NIL terminator
+=do{i++;loadedfiles[i]=newstr(defaultfiles[i]);}while(defaultfiles[i]!=NIL);=
+calls =newstr(NIL)= -> =strlen(NULL)= on the terminator before the test. Hit on
+the fallback path when the cookie table can't be opened. Fix: test before copy.
+
+*** [high] cookie/cookie.c:195 — fopen result used unchecked at fseek (:198)
+The selection loop can land on a file that failed to open; =fd= is dereferenced
+by =fseek= with no NULL check. Fix: check =fd=.
+
+*** [high] bocrypt/smallcrypt.c:99 — loadkey: unchecked malloc + 1-byte heap overflow
+=key=malloc((unsigned)size)= used at =key[0]='\0'= with no NULL check (OOM / empty
+key file). The buffer is =size= bytes but if the last line lacks a trailing
+newline the assembled string is =size+1= bytes -> one-byte heap overflow.
+Fix: =malloc(size+1)= and check NULL.
+
+** Option-parsing / logic bugs
+
+*** [high] encoding/encoding.c:438 vs 479 — -t/-to collision; -from/-to don't work
+=STR_CASE("-t")= (dump-table) precedes =STR_CASE2("-t","--to")= in the same
+else-if chain, so =-t= can never mean "to". With =STR_CASE2("-f","--from")= (no
+=-from=), the documented =-from code -to code= invocation is fully broken: =-from=
+errors and =-to= is swallowed as dump-table. Fix: rename the conflicting short
+option and add a =-from= alias.
+
+*** [medium] base/base.c:109 — n==0 prints empty string instead of "0"
+=while(n>0)= never runs for zero. Fix: special-case 0 or use do/while.
+
+*** [medium] base/base.c:51 — invalid base aborts via assert (SIGABRT on user input)
+=base=atoi(argv[2])=; values 0, 1, >36 or non-numeric trip =assert= instead of a
+clean error. Fix: validate and print a usage message.
+
+** Lower-risk
+
+*** [medium] bocrypt/smallcrypt.c:55 — qerror() vsprintf into fixed message[BUFSIZ]
+Caller formats may include filenames; overflowable. Fix: =vsnprintf=.
+
+*** [low] encoding.c:362 / :168 — sprintf into buffer[1024] / MakeTempName strcat
+=escapestr= can emit up to 4 bytes/char into 1024 unbounded; =MakeTempName=
+strcats =.nema= onto =TempName[256]= from argv paths. Fix: bound both.
+
+*** [low] cookie.c:117 — last char truncated when a line lacks a trailing newline
+=malloc(l)= + forced =loadedfiles[i][l-1]='\0'= assumes a trailing =\n=.
+
+** common / benlib integration
+encoding.c uses =BenEncodingTableNamed=/=Names=, =BenApproximationTableNamed=/
+=Names=, =BenBuildConversionTable= -- all match the installed Bencoding.h. It does
+NOT call the recently-fixed =BenConvertString= (it rolls its own =ConvertEncoding=
+at :280, indexing with 0..255 =fgetc= values), so it is not exposed to the old
+signed-char bug. (encoding.c also uses =bjstring.h=/=bjarray.h=/
+=bjobject_initialize= from =bjlib=; the module Makefile already carries the bjlib
+-I and -l paths, so it links correctly.)
+
+** Health
+smallcrypt.c is the problem child (build-blockers + loadkey overflow + unbounded
+vsprintf); cookie.c compiles but has three crash bugs; encoding.c uses benlib
+correctly but its -from/-to parsing is broken; base.c is clean but mishandles 0 and aborts on invalid bases.

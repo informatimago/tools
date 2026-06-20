@@ -1,0 +1,88 @@
+# -*- mode: org -*-
+#+TITLE: segment / line-utilities / truncate / extractbit1: I/O + overflow bugs
+#+DATE: 2026-06-20
+
+* TODO [#A] segment, line-utilities, truncate, extractbit1, sum*: build + I/O correctness  :segment:line-utilities:truncate:extractbit1:build:io:
+  Full-tree review 2026-06-20 (gcc 14, strict flags; the strncpy/format/fclose
+  value-range diagnostics need -O2, which the build uses). The recurring "'r'
+  set but not used" warnings are mostly real unchecked-I/O bugs, not style nits.
+  See [[build-system]].
+
+** Build-blockers (-Werror)
+
+*** [high] line-utilities/fields.c:60 — strncpy bound (size_t)-1 underflow; real OOB write
+When =field_index= exceeds the field count, the last loop iteration sets
+=stop=strlen(record)= then =start=stop+1=, so =stop-start= (size_t) underflows to
+~SIZE_MAX. =strncpy(field,...,SIZE_MAX)= and =field[stop-start]= write wildly OOB.
+Per fields.h the documented behaviour for index>count is the empty string.
+Fix: after the loop, if =start>stop= copy ""; else =len=stop-start;
+strncpy(field,record+start,len); field[len]='\0';=.
+
+*** [medium] segment/join.c:61 — sprintf("%03u") into char num[4] overflow
+=num= holds 4 bytes; any segment number >=1000 writes 5 bytes. The code then
+copies =num[0..2]= assuming exactly 3 digits, so it also cannot join >1000
+segments. Fix: =num[16]= and =snprintf= the full width into =segname=.
+
+*** [high] segment/segment.c:436 — fclose(wholefile) when wholefile==NIL
+Inside the =if(wholefile==NIL)= error branch it calls =fclose(wholefile)= on the
+null handle (=-Wnonnull=; UB at runtime). Fix: remove the fclose.
+
+*** [medium] truncate/truncate.c:82 — implicit declaration of truncate()
+=truncate()= is only declared behind =#ifdef AIX/Linux/MACOSX/NeXT=; under the
+strict build none is defined, so =<unistd.h>= is not included.
+Fix: include =<unistd.h>= unconditionally with =_DEFAULT_SOURCE=.
+
+*** [low] unused-but-set build stops (warning-level fixes, but check the I/O ones below)
+- segment.c:372,677 =r= (fwrite/fgets returns), :1059 =file= (genuinely dead)
+- join.c:102 =r= (fwrite return)
+- truncate/binskip.c:82 =c= (getchar in skip loop)
+- extractbit1.c:46 =r= (fread/fwrite returns)
+
+** Latent correctness bugs
+
+*** [high] extractbit1.c:47 — unchecked short read + feof loop writes garbage; outbyte uninitialized
+The inner =for= reads 8 bytes ignoring =fread='s result, so at EOF =inbyte= keeps
+a stale value and =outbyte= is still shifted/written; the =while(!feof)= then
+writes one extra byte past real data, and =outbyte= is never initialized.
+Fix: break when =fread= returns 0; only write on a full 8 bits; =outbyte=0= each
+group.
+
+*** [high] segment.c:391/677, join.c:115 — fwrite/fgets return ignored; partial writes corrupt silently
+=fwrite= can return < requested on a full disk; the code checks only =ferror= then
+advances =segsize=/=wholesize=, producing silently truncated segments with no bad
+status (matches the file's own BUG note). =sgets= infers success from =ferror=
+only. Fix: compare the write count to the request and fail/retry; use the =fgets=
+return to detect EOF.
+
+*** [high] segment.c:1115,1131,1160 — sscanf("%lu",(INT32*)&card32) writes 8 bytes into 4
+=count=/=lastsize=/=number= are 32-bit but cast to =(INT32*)= and read with =%lu=
+(=unsigned long= = 8 bytes on LP64) -> 4-byte stack overrun. The cast also hides
+the =-Wformat= warning. Fix: read into an =unsigned long= temp, range-check, then
+assign (or use =%u=/=SCNu32=).
+
+*** [medium] segment.c:1140 — lastsize*=1024*1024*1024 overflows 32-bit
+Any =G= factor >=4 wraps silently. Fix: 64-bit arithmetic + validation.
+
+*** [medium] segment.c:741 — cutlen used before set; wholesize uninitialized
+=segsize+=cutlen= runs on the =Cut_GetSlice== FALSE path where the =else= never
+sets =cutlen=, and on the first iteration =cutlen= is indeterminate; =wholesize=
+is =+=='d without init. Fix: init both per iteration.
+
+*** [medium] truncate/binskip.c:69 — broken short-write loop (writes from buffer not p)
+On a short write the loop advances =p= but re-writes from =buffer= with the wrong
+count, duplicating/garbling data. Fix: =fwrite(p,1,rsize,output)= + error check.
+The :90 skip via =getchar()= is also O(n) and unchecked for EOF; prefer =fseek=.
+
+*** [low] minor
+- segment.c:307 =concat()= malloc unchecked.
+- unsparse.c:102,163 =remain<=0= on size_t is always false (use ===0=); :206 fd
+  leak on malloc failure.
+- sumascii.c:42 — dereferences =argv[1]= with no =argc>=2= guard (easter-egg).
+- sum32/sum32.c:35 — prints =unsigned long= with =%10ld=; "sum32" is 64-bit on
+  LP64, so the checksum is platform-dependent. Use =%lu= / a fixed-width type.
+
+** Health
+segment.c carries the most risk (sscanf stack overrun, G-overflow, uninitialized
+cutlen/wholesize, unchecked fwrite). fields.c's strncpy underflow is a genuine
+overflow on out-of-range indices. extractbit1 and truncate/binskip corrupt output
+beyond the warnings. lgetvalue.c and unsparse.c are essentially sound.

@@ -1,0 +1,98 @@
+# -*- mode: org -*-
+#+TITLE: formats: binhextools build wiring + endianness + orphaned trees
+#+DATE: 2026-06-20
+
+* TODO [#A] formats: build wiring, byte-order, and dead/orphaned sources  :formats:build:memory:endianness:
+  Full-tree review 2026-06-20 (gcc/g++ 14, strict flags). Macintosh file-format
+  tools (BinHex, MacBinary, single/double fork). The binhexlib stream core is
+  clean and the BinHex 6-bit alphabet matches the spec; the *tools* are in poor
+  shape. See [[build-system]].
+
+** Build-blockers
+
+*** [critical] binhextools — libbinhexlib.a + SevenStream.hh/RunLengthStream.hh not found
+One root cause: =binhexlib= is never installed into =$(PREFIX)=.
+=binhextools/sources/Makefile= references =-I$(PREFIX)/lib/binhexlib/interfaces=
+and =$(PREFIX)/lib/binhexlib/libraries/libbinhexlib.a=, but =make all= from the
+top never *installs* binhexlib first (the project loop only runs each module's
+=all=). The headers live in =binhexlib/interfaces/= and the =.a= stays in
+=binhexlib/sources/=.
+Fix (preferred): repoint binhextools' INCLUDES/LIBS at the in-tree sibling
+(=-I../../binhexlib/interfaces= and =../../binhexlib/sources/libbinhexlib.a=) so
+it no longer depends on an install step. Alternative: drive the top build with
+=make install= (MODULES lists binhexlib before binhextools).
+
+*** [critical] single_to_double/s2d.c:542,543 — strncpy truncation (-Werror=stringop-truncation)
+=fdType=/=fdCreator= are =OSType= = =char[4]= fixed tags (not C strings), so no
+NUL is wanted, but gcc14 flags the call regardless.
+Fix: =memcpy(ffork.finfo.fdType,"TEXT",4);= (and ="UNIX"=).
+
+*** [critical] macbinary/sources/mb.c:652 — 'dontoverride' set but not used
+Assigned =TRUE= and never read (the comment even says "useless").
+Fix: delete the declaration/assignment.
+
+** Orphaned / unbuildable trees (excluded from MODULES, do not add as-is)
+
+*** [high] formats/macbinary_to_triple/mb2t.c — dead, won't compile on gcc14
+Not in the top Makefile MODULES. K&R definitions, =//= comments under strict
+C99-pedantic, =close()= on =FILE*= (should be =fclose=, lines 461/464/482/503/517/525),
+undeclared =nil=/=boolean=/=int32=/=int16=, =sprintf= into a 32-byte buffer (:117).
+Superseded by =macbinary/sources/mb.c=. Confirm retired; delete or document.
+
+*** [high] single_to_double/encours/ — abandoned NeXTSTEP Objective-C WIP
+=#import <objc/Object.h>=, =<streams/streams.h>=, =NXStream=, =#include
+<PJBTypes.h> // OBSOLETE=; none exist on Linux. ASSegment.m also has real bugs:
+=+new:stream:= references the instance ivar =lastError= from a class method (:60),
+and =-changeStream:= assigns =myStream=s= where =s= is undefined (:89).
+Treat =encours/= as excluded source.
+
+** Latent bugs
+
+*** [critical] binhextools/sources/bh.c:296 — entire encode/decode logic is dead code
+=main= parses options, echoes them, then =return(0);= at :296. Everything after
+(create/extract at 298-331) is unreachable, and the bodies below are empty stubs.
+=bh=/=bhencode=/=bhdecode= do nothing but echo arguments.
+Fix: remove the debug block and premature return; implement the body.
+
+*** [high] s2d.c:149,166 (and mb2t.c:133,149) — magic compared without byte-swap
+=header.magic= is read raw and compared to =AppleSD_Single_Magic= (0x00051600),
+but AppleSingle/Double store fields *big-endian*; on little-endian Linux genuine
+files fail the test and s2d silently exits 0. All multi-byte on-disk fields
+(=entryCount=, =entry.offset/length=, =fdFlags=) have the same defect.
+Fix: byte-swap every on-disk field (=be32toh=/=htobe32=, or assemble from bytes
+like mb.c's =toCARD32=).
+
+*** [high] s2d.c:248 — unvalidated entry.offset/length drives fseek/fread
+=AppleSD_CopyData=/=GetType= seek to =entry.offset= and copy =entry.length= bytes
+straight from header values, no bounds check vs file size; =entry.length= is
+signed so a negative value drives a near-infinite copy.
+Fix: validate =offset>=0=, =length>=0=, =offset+length<=filesize=.
+
+*** [medium] binhexlib/RunLengthStream.cc:107 — run-length count underflow
+After marker =0x90=, =length= is =CARD8=; a stream =0x90 0x01= makes
+=DECR(length,2)= = 255, emitting the previous byte 255 times.
+Fix: reject =length<2= after a marker as corrupt.
+
+*** [medium] macbinary/mb.c:392 — MacBinary_Skip checks wrong variable
+After reading =padding= bytes it tests =if(count!=size)= but =size= is 0 here;
+a short read of the padding is not detected. Fix: compare against =padding=.
+
+*** [medium] mb.c:587 — type-punned *(CARD32*)&info->type (aliasing + endian display)
+Strict-aliasing violation and prints the 4-byte tag in host byte order.
+Fix: print the four bytes individually or assemble big-endian.
+
+*** [medium] mb.c:494 / s2d.c basename/makeresourcefilename — unbounded strcpy/strcat
+=forkopen= does =strcpy(name,fname);strcat(name,extension)= into =CHAR name[1024]=
+with no guard; =makeresourcefilename=/=basename= copy into fixed buffers unbounded.
+Long paths overflow. Fix: bounded copies / =snprintf=.
+
+*** [low] mb.c:310 — strcpy of a possibly-not-NUL-terminated 63-byte Mac name
+=strcpy(finfo->name,header->name)= when =nameLength==63= can over-read.
+Fix: bound by =nameLength= and NUL-terminate. Also s2d.c:406 =basename= shadows
+POSIX =basename(3)=; rename to =s2d_basename=.
+
+** Health
+Build is broken by four hard stops (binhexlib wiring, s2d strncpy, mb.c unused);
+two source trees are orphaned/unbuildable. Once those are fixed, =bh.c= is a
+non-functional stub and =s2d.c=/=mb2t.c= mishandle endianness and trust on-disk
+sizes — those are the priority for correctness.

@@ -1,0 +1,70 @@
+# -*- mode: org -*-
+#+TITLE: dosname: C++11 literal-suffix build breaks + memory bugs
+#+DATE: 2026-06-20
+
+* TODO [#A] dosname: g++-14 build breaks and latent memory bugs  :dosname:build:memory:cxx:
+  Full-tree review 2026-06-20 (g++ 14, C++11+, strict flags). dosname renames
+  files to DOS 8.3 names and links the common C++ libs (bplib/bclib). bplib uses
+  *unsigned* lengths/indices, so =if(x<0)= guards are dead and =len-other=
+  underflows. See [[build-system]] and [[common-integration]] (bplib/bclib API
+  use verified consistent with the installed headers).
+
+** Build-blockers (-Werror=literal-suffix, C++11)
+
+*** [critical] MfFile.cc:144, :175 — invalid suffix on literal
+=fscanf(output,"%"FMT_CARD32,...)= : =FMT_CARD32= expands to ="u"= with no space,
+so C++11 lexes ="%"u= as a user-defined-literal token.
+Fix: add a space: ="%" FMT_CARD32=.
+
+*** [critical] Renamer.cc:358 — same literal-suffix defect (NOT in the original error list)
+=sprintf(p,"%03"FMT_INT32,n)= -> ="%03"d=. Same fix: ="%03" FMT_INT32=.
+
+** Memory safety (latent)
+
+*** [high] MfFile.cc:526 — textContents(): unchecked malloc
+=data=malloc((fsize+1))= is used by =fread=/=data[fsize]= with no NULL check.
+Fix: check =data==NULL= and bail like the other paths.
+
+*** [high] MfFile.cc:239 — compareFirstBlock(): memcmp on possibly-NULL fBlock
+=loadFirstBlock()= leaves =fBlock=NULL= on failure, but =compareFirstBlock=
+does =memcmp(fBlock,otherFile->fBlock,...)= unconditionally.
+Fix: guard =if(fBlock && otherFile->fBlock)=.
+
+*** [high] CapWord.cc:160 — analyzeRun(): uninitialized gap + wrong terminator
+=size=cNext-mark= counts all chars, but the copy loop skips ignore-class chars
+leaving =j<size=; it then writes =run[size]='\0'= instead of =run[j]='\0'=, so
+=run[j..size-1]= are garbage. Any name with ignore chars (=* + / ? = > \=)
+produces a corrupt run.
+Fix: terminate at =run[j]='\0'=.
+
+*** [medium] Renamer.cc:316 — computeDosName(): write to never-allocated curDosName
+In the =processedUN[0]=='.'= branch, =strcpy(curDosName,processedUN)= runs but
+=curDosName= is only =malloc='d in the =else=; here it is still NIL.
+Fix: allocate before the strcpy.
+
+*** [medium] Renamer.cc:351 — collision suffix can overflow the 13-byte buffer
+=curDosName=malloc(8+1+3+1)=13=; appending ='.'= then =sprintf(p,"%03...",n)=
+when the name already uses 8.3 writes past the 13 bytes.
+Fix: size for the worst case, or bound the name part before suffixing.
+
+*** [medium] MfFile.cc:194 — size() returns MAX_CARD32 on stat failure, used as a length
+=loadFirstBlock= then computes =wordCount=(MAX_CARD32+3)/4 ~ 1G= -> =malloc(~4GB)=;
+=textContents= does =malloc(MAX_CARD32+1)= -> wraps to =malloc(0)=.
+Fix: treat =MAX_CARD32= as an error in callers.
+
+*** [low] MfLink.cc:110 — readlink result not NUL-terminated
+Safe today (=read()= uses an explicit count) but any later =strlen(linkbuf)=
+over-reads. NUL-terminate after =readlink=.
+
+** Signed/unsigned (-Wconversion)
+Pervasive =CARD32=<->=INT32= mixing will trip =-Wconversion=/=-Wsign-conversion=
+if those are enabled: Renamer.cc:543 =INT32 c=keys->size()=, MfDirectory.cc:480,534
+=INT32 c=contentCard()= (both sources return CARD32), and =malloc(size+1)=
+(INT32->size_t) in CapWord.cc. Harmless for realistic counts.
+
+** Health
+Will not compile until the three literal-suffix errors (MfFile.cc:144,175 and the
+unlisted Renamer.cc:358) are fixed. Beyond the build, the unchecked
+=textContents= malloc, NULL-=fBlock= memcmp, the never-allocated =curDosName=
+dot-path, the 13-byte collision overflow, and =analyzeRun= mis-termination are
+genuine and worth fixing before trusting the tool on real data.

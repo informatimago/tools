@@ -1,0 +1,66 @@
+# -*- mode: org -*-
+#+TITLE: build system: hardcoded MAKEDIR, strict -Werror policy, module wiring
+#+DATE: 2026-06-20
+
+* TODO [#A] build system: portability and the -Werror policy  :build:makedir:
+  Full-tree review 2026-06-20. The tools build by including =$(MAKEDIR)/{project,
+  module,common}= from the common checkout and linking the common libs installed
+  under =$(PREFIX)/lib= (here =/usr/local/lib=). Several cross-cutting build
+  problems block a clean modern build. Related: [[formats]] (binhextools install
+  ordering), [[common-integration]].
+
+** Issues
+
+*** [high] Makefile:49 — MAKEDIR is hardcoded to $(HOME)/src/public/common/makedir
+The top-level Makefile sets =MAKEDIR := $(HOME)/src/public/common/makedir=, which
+does not exist on a normal checkout (common is typically a sibling, =../common=),
+and breaks =sudo make= (where =$(HOME)= becomes =/root=). This is the same class
+of bug already fixed in the *common* repo's Makefile (derive the path from the
+Makefile's own location).
+Fix: derive a sane default, e.g.
+  =COMMON  := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))/../common=
+  =MAKEDIR := $(COMMON)/makedir=
+keeping them simple (:=) so =COMMON=/=MAKEDIR=/=PREFIX= can still be overridden on
+the command line. Also drop the =m1=/=m2= recipes' =$(HOME)/src-new/common= paths
+or update them to match.
+
+*** [medium] module Makefiles have no MAKEDIR default -> standalone build fails
+Most module Makefiles are just =include $(MAKEDIR)/module= with no default, so
+=make= inside a module directory fails with =/module: No such file or directory=
+unless =MAKEDIR=...= is passed. Only ascii-utilities (and partially sumascii) set
+their own =MAKEDIR := $(shell pwd)/../../common/makedir=.
+Fix: give each module Makefile the same self-locating default, or document that
+modules must be built from the top level / with =MAKEDIR== passed.
+
+*** [high] the strict -Werror flag set fails the whole tree on gcc/g++ 14
+=makedir/targetLinux= compiles with =-Wall -Werror -Wconversion -Wcast-qual
+-Wwrite-strings -pedantic-errors -Wstrict-prototypes ...=. On gcc 14 this turns
+many previously-silent warnings into hard errors across the tree:
+=unused-but-set-variable=, =format-overflow=, =stringop-truncation=,
+=stringop-overflow=, =restrict= (overlapping memcpy), =literal-suffix= (C++11).
+The per-module issues list each occurrence. Some are real bugs (lc.c overlapping
+strncpy, fields.c length underflow, cplusinherited overflows, formats s2d) and
+must be fixed; others are warning-only.
+DECISION NEEDED: fix every site (preferred, since most are genuine), vs. relaxing
+specific warnings to -W (no -Werror) for legacy modules. Recommend fixing the
+real bugs and keeping -Werror; only the cosmetic =unused-but-set= cases are
+candidates for a localized =(void)x;=.
+
+*** [medium] strict-ISO breaks platform headers (linux vs __linux__, _DEFAULT_SOURCE)
+Several modules gate system headers on bare =linux=/=AIX= (undefined under
+=-std=cNN=) and then call =lstat=/=truncate=/=index=/=rindex= that need
+=_DEFAULT_SOURCE= or =<strings.h>=. See [[ascii-utilities]] (lc/whatisit/randchar/
+parity), [[bocrypt-cookie-encoding-base]] (smallcrypt index/rindex),
+[[segment-and-line-utilities]] (truncate.c). Note: primes' and encoding's
+Makefiles already pass =-D_GNU_SOURCE=, which is the pattern to generalise.
+Fix: guard on =__linux__=/=__unix__=, include =<unistd.h>=/=<strings.h>=
+unconditionally, and define =_DEFAULT_SOURCE= (or =-D_GNU_SOURCE=) tree-wide.
+
+*** [high] binhextools cannot build from a clean tree (install-ordering)
+=make all= never installs binhexlib before binhextools compiles/links against
+=$(PREFIX)/lib/binhexlib/...=. Full detail and fix in [[formats]].
+
+** Health
+The build framework is sound in shape but assumes a 2003-era layout and toolchain.
+The hardcoded MAKEDIR, the missing per-module defaults, and the gcc-14 -Werror
+strictness are the three things to settle before the tree builds clean again.

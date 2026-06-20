@@ -1,0 +1,56 @@
+# -*- mode: org -*-
+#+TITLE: cplusinherited: sprintf buffer overflows
+#+DATE: 2026-06-20
+
+* TODO [#A] cplusinherited: stack buffer overflows + parse bugs  :cplusinherited:build:memory:
+  Full-tree review 2026-06-20 (gcc 14, strict flags). Generates C++ inheritance
+  boilerplate by scanning header/relation files. The worst offender in the tree
+  for memory safety. See [[build-system]].
+
+** Build-blockers (-Werror=format-overflow)
+
+*** [critical] cplusinherited.c:526,534,547,555,637,644,655,663 — sprintf "%s" into char message[256]
+=p= points into =fbuffer[8192]= (a filename/line from the list file); =%s= can
+write up to 8191 bytes into the 256-byte stack buffer. =-Werror=format-overflow=,
+and a genuine stack overflow at runtime.
+Fix: =snprintf(message,sizeof(message),...)= (message is only fed to =perror=,
+so truncation is harmless).
+
+*** [critical] cplusinherited.c:591 (and :469) — '_SUPER' / "#define %s_SUPER" into definition[128]
+=sprintf(definition,"%s_SUPER",classname)=; =classname[128]= can hold 127 chars,
+plus =_SUPER\0= (7 bytes) overflows. :469 adds two identifiers + 17 literal
+chars into 128.
+Fix: =snprintf=, and/or size =definition= to =sizeof(classname)+8=.
+
+** Latent memory-safety
+
+*** [high] cplusinherited.c:77,511,538,624,648 — 2-byte over-write past fixed buffers after fread
+Pattern =size=fread(buf,1,sizeof(buf),f); buf[size]=0; buf[size+1]=0;=. When the
+file fills the buffer exactly, =buf[size]=/=buf[size+1]= write 1 and 2 bytes past
+the end (=hbuffer[81920]=, =fbuffer[8192]=, =dbuffer[256*1024]=).
+Fix: read at most =sizeof(buf)-2=, or guard =size<sizeof(buf)-1=.
+
+*** [high] cplusinherited.c:408 — GetNextWords writes wbuffer[1024] with no bound
+=i= advances over every alnum/punct char with no guard against =i>=1024=; a long
+identifier overruns =wbuffer=. Fix: bound =i= against =sizeof(wbuffer)=.
+
+*** [medium] cplusinherited.c:115,247,302 — unchecked malloc; LoadRelations over-fills hierarchy[2000]
+=classtree_new=/=sortAlphabetically=/=sortDepth= deref the result without a NULL
+check; =LoadRelations= has no count guard against the 2000-entry array.
+Fix: check malloc; bound =*hcount= against 2000.
+
+** Logic
+
+*** [low] cplusinherited.c:460 — while(pos>0) drops a 'class' match at offset 0
+=Pos= returns the index or -1; a file starting with =class= returns 0, treated as
+"no match". Fix: =while(pos>=0)=.
+
+*** [low] cplusinherited.c:731 — switch(sortAlgorithm) case 1 falls through
+=case 1:= (alphabetical) has no =break=, so =-a= sorts alphabetically then
+re-sorts by depth, discarding the order. Fix: add =break;=.
+
+** Health
+Confirmed -Werror format-overflow build failures (8 perror sprintfs + the _SUPER
+ones); plus latent 2-byte fread over-writes, unbounded =wbuffer=/=hierarchy=,
+unchecked mallocs, and two parse logic bugs. Needs =snprintf= throughout and
+bounds checks.
