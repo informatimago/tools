@@ -2,7 +2,28 @@
 #+TITLE: ascii-utilities: build breaks + memory bugs
 #+DATE: 2026-06-20
 
-* TODO [#A] ascii-utilities: gcc-14 build breaks and latent memory bugs  :ascii-utilities:build:memory:
+* DONE [#A] ascii-utilities: gcc-14 build breaks and latent memory bugs  :ascii-utilities:build:memory:
+  RESOLUTION (2026-06-20). Module builds clean under the strict flags (0 errors,
+  all programs link); functional smoke tests pass (binskip skip+EOF, lc CRLF->LF,
+  sevenbit escape, sortchars).
+  - lc.c: overlapping strncpy -> memmove; OOB inbuf[inmark(+1)] reads guarded by
+    inmark<inlen (empty line-feed at EOF with no terminator); removed the
+    undocumented/unimplemented -s/maxlinesize option; guard now __linux__/__unix__
+    and _DEFAULT_SOURCE for lstat/S_IF*.
+  - sevenbit.c: convtoseven snprintf with (c&0xff) (fixes format-overflow);
+    update_approx / copy_approximation_table NULL-check every malloc (exit on OOM).
+  - binskip.c: dropped unused c and terminate the skip loop on EOF; copy() now
+    writes from p (not buffer) on partial writes and detects write errors.
+  - parity.c: parity_flag uses parity_byte_check(c,parity) instead of the bogus
+    c==parity_byte_find(c); rindex -> strrchr.
+  - whatisit.c: loadfile NULL-checks malloc; __linux__ guard.
+  - randchar.c: random index kept unsigned (no negative %); __linux__ guard.
+  - sortchars.c: dropped the bogus extern qsort decl (#include <stdlib.h>);
+    isupper/tolower take (unsigned char).
+  - bintohex.c: size_t printed with %zu and compared as (size_t)produit.
+  - MakeTempName (lc.c + encoding.c) takes a buffer size and uses snprintf.
+  Deferred (low, benign): bintohex's column-spacing parameter is still inert at
+  its only call site (spaces=0); no overflow there, left for a later feature pass.
   Found by a full-tree review on 2026-06-20 (gcc 14, the makedir strict flag
   set: -Wall -Werror -Wconversion -Wcast-qual -pedantic-errors
   -Wstrict-prototypes ...). Line numbers verified against current sources.

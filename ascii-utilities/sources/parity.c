@@ -83,7 +83,7 @@ static void usage(const char* pname)
 
 static const char* basename(const char* pname)
 {
-    const char* bname=rindex(pname,'/');
+    const char* bname=strrchr(pname,'/');
     if(bname==0){
         return(pname);
     }else{
@@ -365,7 +365,7 @@ static StatusT parity_flag(FILE* input,FILE* output,ParityT parity,
     int errlen=(int)strlen(err);
 
     while(EOF!=(c=fgetc(input))){
-        if(c==parity_byte_find((unsigned)c)){
+        if(parity_byte_check((unsigned)c,parity)){
             fputc(c,output);
         }else{
             fputs(err,output);

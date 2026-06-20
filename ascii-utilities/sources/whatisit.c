@@ -51,7 +51,7 @@ LEGAL
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#if defined(linux)||defined(AIX)
+#if defined(__linux__)||defined(__unix__)||defined(AIX)
 #include <unistd.h>
 #else
 #include <libc.h>
@@ -152,7 +152,9 @@ binaryCount,asciiCount,macintoshCount,nextCount,size);
                 return(NULL);
             }else{
                 buffer=(CHAR*)malloc((unsigned)(*size));
-                if(fread(buffer,sizeof(CHAR),(unsigned)(*size),file)
+                if(buffer==NULL){
+                    return(NULL);
+                }else if(fread(buffer,sizeof(CHAR),(unsigned)(*size),file)
                    !=(size_t)(*size)){
                     free(buffer);
                     return(NULL);

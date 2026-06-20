@@ -131,6 +131,10 @@ LEGAL
     {
         int i;
         char* escapeStr=malloc(2);
+        if(escapeStr==0){
+            fprintf(stderr,"sevenbit: out of memory\n");
+            exit(EXIT_FAILURE);
+        }
         escapeStr[0]=(char)escapeCh;
         escapeStr[1]='\0';
         for(i=0;i<appr->count;i++){
@@ -154,9 +158,17 @@ LEGAL
         }
 
         copy=(BenApproximationTableT*)malloc(sizeof(BenApproximationTableT));
+        if(copy==0){
+            fprintf(stderr,"sevenbit: out of memory\n");
+            exit(EXIT_FAILURE);
+        }
         copy->count=appr->count;
         copy->approximations=(BenApproximationT*)malloc(sizeof(BenApproximationT)*(size_t)(copy->count+1));
         copyData=(char*)malloc(sizeof(char)*(size_t)l);
+        if((copy->approximations==0)||(copyData==0)){
+            fprintf(stderr,"sevenbit: out of memory\n");
+            exit(EXIT_FAILURE);
+        }
 
         for(i=0;i<copy->count;i++){
             copy->approximations[i].charName=appr->approximations[i].charName;
@@ -347,7 +359,7 @@ LEGAL
                 i=BenFindCharNameInApproximationTable(approx,charName);
             }
             if(i<0){
-                sprintf(buffer,"%c%c%02x",escapeChar,numberChar,c);
+                snprintf(buffer,sizeof(buffer),"%c%c%02x",escapeChar,numberChar,(unsigned)(c&0xff));
                 return(buffer);
             }else{
                 return(approx->approximations[i].asciiApproximation);

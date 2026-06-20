@@ -136,10 +136,10 @@ int main(int argc,char** argv)
                 i+=consomme;
                 rsize=rsize-(size_t)consomme;
                 wsize=fwrite(outbuf,1,(unsigned)produit,stdout);
-                if(wsize!=produit){
+                if(wsize!=(size_t)produit){
                     fprintf(stderr,
                             "%s error: error while writting output stream "
-                            "(%"FMT_INT32"/%"FMT_INT64").\n",argv[0],produit,wsize);
+                            "(%"FMT_INT32"/%zu).\n",argv[0],produit,wsize);
                     return(1);
                 }
             }

@@ -67,7 +67,7 @@ LEGAL
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#if defined(linux)||defined(AIX)
+#if defined(__linux__)||defined(__unix__)||defined(AIX)
 #include <unistd.h>
 #else
 #include <libc.h>
@@ -225,7 +225,7 @@ int main(int argc,char* argv[])
     while(generate){
         i=0;
         while(i<linelength){
-            buffer[i]=CharList[(int)BcRandom_random(X) % CharListCount];
+            buffer[i]=CharList[(int)(BcRandom_random(X)%(CARD32)CharListCount)];
             i++;
         }
         buffer[i]='\0';

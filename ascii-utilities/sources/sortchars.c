@@ -55,9 +55,7 @@ LEGAL
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-
-extern void* qsort(void* base,size_t nmemb,size_t size,
-                   int(*compar)(const void*,const void*));
+#include <stdlib.h>
 
 
 static int comparechar(const void* a, const void* b)
@@ -128,8 +126,8 @@ int main(int argc,char** argv)
             if(fold){
                 int             ii;
                 for(ii=0;ii<len;ii++){
-                    if(isupper(buffer[ii])){
-                        buffer[ii]=(char)tolower(buffer[ii]);
+                    if(isupper((unsigned char)buffer[ii])){
+                        buffer[ii]=(char)tolower((unsigned char)buffer[ii]);
                     }
                 }
             }

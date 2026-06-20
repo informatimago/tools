@@ -95,10 +95,11 @@ LEGAL
     product without the author written permission. It may be used freely for 
     any non-commercial purpose, provided that this header is always included.
 ******************************************************************************/
+#define _DEFAULT_SOURCE 1
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if defined(linux)||defined(AIX)
+#if defined(__linux__)||defined(__unix__)||defined(AIX)
 #include <unistd.h>
 #else
 #include <libc.h>
@@ -255,7 +256,7 @@ static INT32 lc_getline(FILE* in,char** line,INT32* len)
         inlen-=(CARD32)start;
         /* inlen = number of byte remaining in the buffer ; inlen << BufSize */
         if(inlen>0){
-            strncpy(inbuf,inbuf+start,inlen);
+            memmove(inbuf,inbuf+start,inlen);
         }
         clearerr(in);
         inlen+=(CARD32)fread(inbuf+inlen,1,BufSize-inlen,in);
@@ -273,8 +274,13 @@ static INT32 lc_getline(FILE* in,char** line,INT32* len)
         }
     }
     *len=(INT32)inmark-start;
-    linefeed[toNone][0]=inbuf[inmark];
-    linefeed[toNone][1]=inbuf[inmark+1];
+    if(inmark<inlen){
+        linefeed[toNone][0]=inbuf[inmark];
+        linefeed[toNone][1]=(inmark+1<inlen)?inbuf[inmark+1]:0;
+    }else{
+        /* end of input with no line terminator: emit no line feed */
+        linefeed[toNone][0]=0;
+    }
     if(inmark+1<inlen){
         if(inbuf[inmark]==ASCII_CR){
             if(inbuf[inmark+1]==ASCII_LF){
@@ -393,7 +399,7 @@ static void printerr(INT32 err)
 }/*printerr*/
     
     
-static void MakeTempName(char* src,char* temp)
+static void MakeTempName(char* src,char* temp,size_t size)
 /*
   PRE:        The number of file in the file system < MAXINT32
 */
@@ -404,7 +410,7 @@ static void MakeTempName(char* src,char* temp)
     n=-1;
     do{
         n++;
-        sprintf(temp,"%s.%"FMT_INT32,src,n);
+        snprintf(temp,size,"%s.%"FMT_INT32,src,n);
     }while(lstat(temp,&status)==0);
 }/*MakeTempName*/
 
@@ -429,7 +435,6 @@ int main(int argc,char* argv[])
     FILE*           fout;
     INT32           i;
     INT32           j;
-    INT32           maxlinesize=MAX_INT32;
     INT32           err;
     char*           opt;
     struct stat     filestatus;
@@ -473,15 +478,6 @@ int main(int argc,char* argv[])
                 converto=toCP;
                 nooption=FALSE;
                 break;
-            case 's':
-                {
-                    INT32 s=atoi(opt+j+1);
-                    if(s>0){
-                        maxlinesize=s;
-                        break;
-                    }
-                }
-                /* fall thru: */
             default:
                 fprintf(stderr,"### Invalid option: %c\n",opt[j]);
                 usage(argv[0]);
@@ -510,7 +506,7 @@ int main(int argc,char* argv[])
                 if(fin==NIL){
                     fprintf(stderr,"### I cannot open the input file \"%s\"; skipping it.\n",argv[i]);
                 }else{
-                    MakeTempName(argv[i],OutputName);
+                    MakeTempName(argv[i],OutputName,sizeof(OutputName));
                     fout=fopen(OutputName,"w");
                     if(fout==NIL){
                         fprintf(stderr,"### I cannot open the output file \"%s\"; skipping \"%s\".\n",OutputName,argv[i]);
@@ -520,7 +516,7 @@ int main(int argc,char* argv[])
                         fclose(fin);
                         fclose(fout);
                         if(err==0){
-                            MakeTempName(argv[i],TempLink);
+                            MakeTempName(argv[i],TempLink,sizeof(TempLink));
                             err=rename(argv[i],TempLink);
                             if(err==0){
                                 err=link(OutputName,argv[i]);

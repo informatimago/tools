@@ -135,10 +135,9 @@ static void printerr(int err)
 }/*printerr*/
     
 
-static void MakeTempName(char* src,char* temp)
+static void MakeTempName(char* src,char* temp,size_t size)
 {
-    strcpy(temp,src);
-    strcat(temp,".nema[ ]");
+    snprintf(temp,size,"%s.nema[ ]",src);
 }/*MakeTempName*/
     
 
@@ -447,7 +446,7 @@ int main(int argc,char** argv,char** envp)
                         "### I cannot open the input file \"%s\";"
                         " skipping it.\n",argv[i]);
             }else{
-                MakeTempName(argv[i],TempName);
+                MakeTempName(argv[i],TempName,sizeof(TempName));
                 fout=fopen(TempName,"w");
                 if(fout==NULL){
                     fprintf(stderr,
