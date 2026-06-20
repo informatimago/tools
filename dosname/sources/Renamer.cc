@@ -286,6 +286,7 @@ METHOD(Renamer,computeDosName,(void),void)
     AttrString* aDosName;
     INT32       n;
     char*       p;
+    const size_t dosNameSize=8+1+3+1;
         
     aUnixName=NEW(AttrString);
     aUnixName->setString(curUnixName);
@@ -315,7 +316,7 @@ METHOD(Renamer,computeDosName,(void),void)
         }
         if(processedUN[0]=='.'){
             /* "." or ".." */
-            strcpy(curDosName,processedUN);
+            curDosName=newstr(processedUN);
             // no entry in the cache.
         }else{
             names=NEW(NameSeq);
@@ -327,13 +328,13 @@ METHOD(Renamer,computeDosName,(void),void)
             }
                 
             names->reduce();
-            curDosName=(char*)malloc(8+1+3+1);
+            curDosName=(char*)malloc(dosNameSize);
             i=0;names->catenate(curDosName,&i);
             names->release();
                 
             for(i=0;curDosName[i]!='\0';i++){
-                if(isupper(curDosName[i])){
-                    curDosName[i]=(char)tolower(curDosName[i]);
+                if(isupper((unsigned char)curDosName[i])){
+                    curDosName[i]=(char)tolower((unsigned char)curDosName[i]);
                 }
             }
                 
@@ -355,7 +356,7 @@ METHOD(Renamer,computeDosName,(void),void)
                 }
                 p++;
                 while((dosToUnix->objectForKey(aDosName)!=NULL)&&(n<1000)){
-                    sprintf(p,"%03"FMT_INT32,n);
+                    snprintf(p,dosNameSize-(size_t)(p-curDosName),"%03" FMT_INT32,n);
                     n++;
                     aDosName->setString(curDosName);
                 }

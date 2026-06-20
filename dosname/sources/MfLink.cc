@@ -107,10 +107,11 @@ METHOD(MfLink,open,(const char* omode),BOOLEAN)
     switch(*omode){
     case 'r':
         state=State_reading;
-        fEof=(INT32)readlink(pathName()->string(),linkbuf,BUFSIZ);
+        fEof=(INT32)readlink(pathName()->string(),linkbuf,BUFSIZ-1);
         if(fEof<0){
             fEof=0;
         }
+        linkbuf[fEof]='\0';
         break;
     case 'w':
         state=State_writting;

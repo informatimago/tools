@@ -122,6 +122,9 @@ METHOD(MfFile,size,(void),CARD32)
         pathNameGet(fname);
         if(stat(fname->string(),&status)==0){
             fSize=(CARD32)status.st_size;
+        }else{
+            perror("MfFile::size stat");
+            return(0);
         }
     }
     return(fSize);
@@ -141,7 +144,7 @@ METHOD(MfFile,lineCount,(void),CARD32)
         if(output==NULL){
             return(MAX_CARD32);
         }else{
-            if(1==fscanf(output,"%"FMT_CARD32,&fLineCount)){
+            if(1==fscanf(output,"%" FMT_CARD32,&fLineCount)){
                 pclose(output);
                 return(fLineCount);
             }else{
@@ -172,7 +175,7 @@ METHOD(MfFile,compare,(MfFile* otherFile),CARD32)
     if(output==NULL){
         return(MAX_CARD32);
     }else{
-        if(1==fscanf(output,"%"FMT_CARD32,&result)){
+        if(1==fscanf(output,"%" FMT_CARD32,&result)){
             pclose(output);
             return(result);
         }else{
@@ -235,6 +238,9 @@ METHOD(MfFile,compareFirstBlock,(MfFile* otherFile),CARD32)
     s=otherFile->size();
     if(s<sizeToCompare){
         sizeToCompare=s;
+    }
+    if((fBlock==NULL)||(otherFile->fBlock==NULL)){
+        return(2);
     }
     if(memcmp((void*)fBlock,(void*)(otherFile->fBlock),sizeToCompare)==0){
         if((sizeToCompare==size())&&(sizeToCompare==otherFile->size())){
@@ -524,6 +530,11 @@ METHOD(MfFile,textContents,(void),BpString*)
         return(0);
     }
     data=(char*)malloc((fsize+1)*sizeof(char));
+    if(data==NULL){
+        perror("MfFile::textContents malloc");
+        fclose(file);
+        return(0);
+    }
     readCount=(CARD32)fread((void*)data,sizeof(char),fsize,file);
     fclose(file);
     if(readCount!=fsize){

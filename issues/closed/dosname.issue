@@ -2,7 +2,31 @@
 #+TITLE: dosname: C++11 literal-suffix build breaks + memory bugs
 #+DATE: 2026-06-20
 
-* TODO [#A] dosname: g++-14 build breaks and latent memory bugs  :dosname:build:memory:cxx:
+* DONE [#A] dosname: g++-14 build breaks and latent memory bugs  :dosname:build:memory:cxx:
+  RESOLUTION (2026-06-20). Module builds clean under the strict flags; smoke
+  test renames "My Long File.txt" -> "mylonfil.txt" (8.3, collision-safe) with no
+  crash.
+  - MfFile.cc:144,175: literal-suffix fixed (="%" FMT_CARD32=).
+  - Renamer.cc:358: literal-suffix fixed and the collision suffix now uses a
+    bounded snprintf into the named dosNameSize buffer.
+  - Renamer.cc:316: the "."/".." path now allocates via newstr() instead of
+    strcpy into the NIL curDosName; isupper/tolower take (unsigned char).
+  - MfFile.cc:526 textContents: NULL-check malloc (close file, return 0 on OOM).
+  - MfFile.cc:239 compareFirstBlock: return 2 (incomparable) when either fBlock
+    is NULL instead of memcmp on NULL.
+  - MfFile.cc:194 size(): on stat failure return 0 instead of caching/returning
+    MAX_CARD32 as a usable length.
+  - CapWord.cc:160 analyzeRun: terminate at run[j] (chars actually copied), not
+    run[size]; NULL-check the malloc.
+  - MfLink.cc:110: readlink bounded to BUFSIZ-1 and linkbuf NUL-terminated.
+  - ADDITIONAL build-blocker found once the above unblocked the module:
+    dosname.cc:218-219 silent/force set-but-unused. These flags (-s/--silent,
+    -f/--force) are documented but were never wired into the MfDirectory
+    copy/link methods (which take no such parameters). Kept accepting them for
+    backward compatibility as explicit (void) no-ops; actually implementing the
+    semantics is deferred feature work (noted in-source).
+  Deferred (low): the remaining CARD32<->INT32 -Wconversion sites did not fire
+  under the current flag set (no -Wsign-conversion); left as-is.
   Full-tree review 2026-06-20 (g++ 14, C++11+, strict flags). dosname renames
   files to DOS 8.3 names and links the common C++ libs (bplib/bclib). bplib uses
   *unsigned* lengths/indices, so =if(x<0)= guards are dead and =len-other=

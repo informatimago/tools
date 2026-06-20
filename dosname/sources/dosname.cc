@@ -310,6 +310,13 @@ int main(INT32 argc,char** argv)
         exit(1);
     }
         
+    /* -s/--silent and -f/--force are accepted for backward compatibility but
+       are not yet wired into the MfDirectory copy/link methods (which take no
+       such parameters); they are currently no-ops.  See issues/ for the
+       deferred feature work. */
+    (void)silent;
+    (void)force;
+
     mode->modeSet(0777);
     if(todos){
         fromDir->fileSystemSet(MfDirectory_FileSystem_UNIX);

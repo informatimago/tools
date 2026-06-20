@@ -159,7 +159,11 @@ METHOD(CapWord,analyzeRun,
     }
     if(cNext>mark){
         size=cNext-mark;
-        run=(char*)malloc(size+1);
+        run=(char*)malloc((size_t)size+1);
+        if(run==NIL){
+            (*next)=cNext;
+            return(NIL);
+        }
         j=0;
         for(i=mark;i<cNext;i++){
             if(charKind[(unsigned char)source[i]]!=ck_ign){
@@ -167,7 +171,7 @@ METHOD(CapWord,analyzeRun,
                 j++;
             }
         }
-        run[size]='\0';
+        run[j]='\0';
     }else{
         run=NIL;
     }
