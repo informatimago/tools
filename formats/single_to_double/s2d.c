@@ -72,6 +72,39 @@ typedef struct {
 #define AppleSD_Single_Magic        (0x00051600)
 #define AppleSD_Double_Magic        (0x00051607)
 #define AppleSD_Version_2           (0x00020000)
+#define AppleSD_HeaderDiskSize      (26)   /* on-disk header is 26 bytes; the in-memory struct pads to 28 */
+
+/* AppleSingle/AppleDouble store all multi-byte header/entry fields big-endian.
+   These helpers convert to/from host order via byte access: portable on any
+   host endianness, and a no-op on big-endian (where the tool was written). */
+static CARD32 be32_get(INT32 v)
+{
+    const unsigned char* b=(const unsigned char*)&v;
+    return (((CARD32)b[0]<<24)|((CARD32)b[1]<<16)|((CARD32)b[2]<<8)|(CARD32)b[3]);
+}
+static CARD16 be16_get(INT16 v)
+{
+    const unsigned char* b=(const unsigned char*)&v;
+    return (CARD16)(((CARD16)b[0]<<8)|(CARD16)b[1]);
+}
+static INT32 be32_put(CARD32 v)
+{
+    INT32 r;
+    unsigned char* b=(unsigned char*)&r;
+    b[0]=(unsigned char)((v>>24)&0xff);
+    b[1]=(unsigned char)((v>>16)&0xff);
+    b[2]=(unsigned char)((v>>8)&0xff);
+    b[3]=(unsigned char)(v&0xff);
+    return r;
+}
+static INT16 be16_put(CARD16 v)
+{
+    INT16 r;
+    unsigned char* b=(unsigned char*)&r;
+    b[0]=(unsigned char)((v>>8)&0xff);
+    b[1]=(unsigned char)(v&0xff);
+    return r;
+}
 
 AppleSD_HeaderT     header;
 
@@ -144,9 +177,9 @@ static BOOLEAN AppleSD_IsSingle(FILE* fd)
     if(0!=fseek(fd,0,SEEK_SET)){
         exit(20);
     }
-    size=(INT32)fread(&header,1,sizeof(header),fd);
-    if(size==sizeof(header)){
-        return((header.magic==AppleSD_Single_Magic));
+    size=(INT32)fread(&header,1,AppleSD_HeaderDiskSize,fd);
+    if(size==AppleSD_HeaderDiskSize){
+        return((be32_get(header.magic)==(CARD32)AppleSD_Single_Magic));
     }else{
         exit(21);
     }
@@ -161,9 +194,9 @@ static BOOLEAN AppleSD_IsDouble(FILE* fd)
     if(0!=fseek(fd,0,SEEK_SET)){
         exit(22);
     }
-    size=(INT32)fread(&hdr,1,sizeof(hdr),fd);
-    if(size==sizeof(hdr)){
-        return((hdr.magic==AppleSD_Double_Magic));
+    size=(INT32)fread(&hdr,1,AppleSD_HeaderDiskSize,fd);
+    if(size==AppleSD_HeaderDiskSize){
+        return((be32_get(hdr.magic)==(CARD32)AppleSD_Double_Magic));
     }else{
         exit(23);
     }
@@ -183,13 +216,13 @@ static BOOLEAN AppleSD_GetEntry(FILE* fd,INT32 id, AppleSD_EntryT* entry)
     INT32       i;
     INT32       size;
         
-    if(0!=fseek(fd,sizeof(AppleSD_HeaderT),SEEK_SET)){
+    if(0!=fseek(fd,AppleSD_HeaderDiskSize,SEEK_SET)){
         exit(24);
     }
     i=0;
-    while(i<header.entryCount){
+    while(i<(INT32)be16_get(header.entryCount)){
         size=(INT32)fread(entry,1,sizeof(AppleSD_EntryT),fd);
-        if(size==sizeof(AppleSD_EntryT)&&(entry->id==id)){
+        if(size==sizeof(AppleSD_EntryT)&&((INT32)be32_get(entry->id)==id)){
             return(TRUE);
         }
         i++;
@@ -205,7 +238,7 @@ static BOOLEAN AppleSD_GetType(FILE* fd,char* type)
     int                 size;
     
     if(AppleSD_GetEntry(fd,Segm_FinderInfo,&entry)){
-        if(0!=fseek(fd,entry.offset,SEEK_SET)){
+        if(0!=fseek(fd,(long)be32_get(entry.offset),SEEK_SET)){
             /*fprintf(stderr,"Cannot fseek.\n");*/
             return(FALSE);
         }
@@ -229,31 +262,46 @@ static void AppleSD_CopyData(FILE* filefd,FILE* datafd)
     AppleSD_EntryT  entry;
     char            buffer[4096];
     INT32           actual;
+    CARD32          offset;
+    CARD32          length;
+    long            filesize;
         
     if(AppleSD_GetEntry(filefd,1,&entry)){
-        if(0!=fseek(filefd,entry.offset,SEEK_SET)){
+        offset=be32_get(entry.offset);
+        length=be32_get(entry.length);
+        if(0!=fseek(filefd,0,SEEK_END)){
             exit(28);
-        }else{
-            while((unsigned)(entry.length)>=sizeof(buffer)){
-                actual=(INT32)fread(&buffer,1,sizeof(buffer),filefd);
-                if(actual!=sizeof(buffer)){
-                    exit(1);
-                }
-                actual=(INT32)fwrite(&buffer,1,sizeof(buffer),datafd);
-                if(actual!=sizeof(buffer)){
-                    exit(2);
-                }
-                entry.length-=(INT32)sizeof(buffer);
+        }
+        filesize=ftell(filefd);
+        if((filesize<0)||((long)offset>filesize)
+           ||((long)length>filesize-(long)offset)){
+            fprintf(stderr,"s2d: data-fork entry out of range "
+                    "(offset=%lu length=%lu filesize=%ld)\n",
+                    (unsigned long)offset,(unsigned long)length,filesize);
+            exit(28);
+        }
+        if(0!=fseek(filefd,(long)offset,SEEK_SET)){
+            exit(28);
+        }
+        while(length>=sizeof(buffer)){
+            actual=(INT32)fread(&buffer,1,sizeof(buffer),filefd);
+            if(actual!=sizeof(buffer)){
+                exit(1);
             }
-            if(entry.length>0){
-                actual=(INT32)fread(&buffer,1,(unsigned)(entry.length),filefd);
-                if(actual!=entry.length){
-                    exit(3);
-                }
-                actual=(INT32)fwrite(&buffer,1,(unsigned)(entry.length) ,datafd);
-                if(actual!=entry.length){
-                    exit(4);
-                }
+            actual=(INT32)fwrite(&buffer,1,sizeof(buffer),datafd);
+            if(actual!=sizeof(buffer)){
+                exit(2);
+            }
+            length-=(CARD32)sizeof(buffer);
+        }
+        if(length>0){
+            actual=(INT32)fread(&buffer,1,length,filefd);
+            if((CARD32)actual!=length){
+                exit(3);
+            }
+            actual=(INT32)fwrite(&buffer,1,length,datafd);
+            if((CARD32)actual!=length){
+                exit(4);
             }
         }
     }
@@ -268,18 +316,18 @@ static void AppleSD_SetDouble(FILE* fd)
     if(0!=fseek(fd,0,SEEK_SET)){
         exit(26);
     }
-    size=(INT32)fread(&hdr,1,sizeof(hdr),fd);
-    if(size!=sizeof(hdr)){
+    size=(INT32)fread(&hdr,1,AppleSD_HeaderDiskSize,fd);
+    if(size!=AppleSD_HeaderDiskSize){
         exit(36);
     }
-    hdr.magic=AppleSD_Double_Magic;
+    hdr.magic=be32_put((CARD32)AppleSD_Double_Magic);
     if(0!=fseek(fd,0,SEEK_SET)){
         exit(29);
     }
-    size=(INT32)fwrite(&hdr,1,sizeof(hdr),fd);
-    if(size!=sizeof(hdr)){
-        fprintf(stderr,"error on fwrite sizeof(hdr)=%d, size=%"FMT_INT32"\n",
-                (int)(sizeof(hdr)),size);
+    size=(INT32)fwrite(&hdr,1,AppleSD_HeaderDiskSize,fd);
+    if(size!=AppleSD_HeaderDiskSize){
+        fprintf(stderr,"error on fwrite header=%d, size=%"FMT_INT32"\n",
+                (int)AppleSD_HeaderDiskSize,size);
         exit(37);
     }
 }/*AppleSD_SetDouble*/
@@ -292,17 +340,17 @@ static BOOLEAN AppleSD_ClearEntry(FILE* filefd,INT32 id)
     INT32               size;
     AppleSD_EntryT      entry;
         
-    if(0!=fseek(filefd,sizeof(AppleSD_HeaderT),SEEK_SET)){
+    if(0!=fseek(filefd,AppleSD_HeaderDiskSize,SEEK_SET)){
         exit(25);
     }
     i=0;
-    while(i<header.entryCount){
+    while(i<(INT32)be16_get(header.entryCount)){
         size=(INT32)fread(&entry,1,sizeof(AppleSD_EntryT),filefd);
-        if((size==sizeof(AppleSD_EntryT))&&(entry.id==id)){
+        if((size==sizeof(AppleSD_EntryT))&&((INT32)be32_get(entry.id)==id)){
             if(0!=fseek(filefd,-(signed)sizeof(AppleSD_EntryT),SEEK_CUR)){
                 exit(27);
             }else{
-                entry.id+=(INT32)0x80000000;
+                entry.id=be32_put(be32_get(entry.id)|0x80000000u);
                 size=(INT32)fwrite(&entry,1,sizeof(AppleSD_EntryT),filefd);
                 if(size==sizeof(AppleSD_EntryT)){
                     return(TRUE);
@@ -522,16 +570,16 @@ int main(int argc,char** argv)
         }                   ffork;
         char                fname[2048];
 
-        ffork.header.magic=AppleSD_Double_Magic;
-        ffork.header.version=AppleSD_Version_2;
+        ffork.header.magic=be32_put((CARD32)AppleSD_Double_Magic);
+        ffork.header.version=be32_put((CARD32)AppleSD_Version_2);
         ffork.header.filler[0]=0;
         ffork.header.filler[1]=0;
         ffork.header.filler[2]=0;
         ffork.header.filler[3]=0;
-        ffork.header.entryCount=1;
-        ffork.entries[0].id=Segm_FinderInfo;
-        ffork.entries[0].offset=(INT32)((INTPTR)(&(ffork.finfo))-(INTPTR)(&(ffork)));
-        ffork.entries[0].length=sizeof(ffork.finfo);
+        ffork.header.entryCount=be16_put(1);
+        ffork.entries[0].id=be32_put((CARD32)Segm_FinderInfo);
+        ffork.entries[0].offset=be32_put((CARD32)(AppleSD_HeaderDiskSize+sizeof(ffork.entries)));
+        ffork.entries[0].length=be32_put((CARD32)sizeof(ffork.finfo));
         i=1;
         while(i<16){
             ffork.entries[i].id=0;
@@ -539,8 +587,8 @@ int main(int argc,char** argv)
             ffork.entries[i].length=0;
             i++;
         }
-        strncpy(ffork.finfo.fdType,"TEXT",4);
-        strncpy(ffork.finfo.fdCreator,"UNIX",4);
+        memcpy(ffork.finfo.fdType,"TEXT",4);
+        memcpy(ffork.finfo.fdCreator,"UNIX",4);
         ffork.finfo.fdFlags=0;
         ffork.finfo.fdLocation.h=0;
         ffork.finfo.fdLocation.v=0;
@@ -578,8 +626,11 @@ int main(int argc,char** argv)
                     fprintf(stderr,"I cannot create '%s'.\n",fname);
                     exit(16);
                 }
-                actual=(INT32)fwrite(&ffork,1,sizeof(ffork),rsrcfd);
-                if(actual!=sizeof(ffork)){
+                actual =(INT32)fwrite(&ffork.header,1,AppleSD_HeaderDiskSize,rsrcfd);
+                actual+=(INT32)fwrite(ffork.entries,1,sizeof(ffork.entries),rsrcfd);
+                actual+=(INT32)fwrite(&ffork.finfo,1,sizeof(ffork.finfo),rsrcfd);
+                if(actual!=(INT32)(AppleSD_HeaderDiskSize+sizeof(ffork.entries)
+                                   +sizeof(ffork.finfo))){
                     exit(2);
                 }
                 fclose(rsrcfd);

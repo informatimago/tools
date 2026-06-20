@@ -28,13 +28,13 @@ CPLUSSOURCES = \
 INCLUDES = \
 		-I../sources \
 		-I$(PREFIX)/lib \
-		-I$(PREFIX)/lib/binhexlib/interfaces \
+		-I../../binhexlib/interfaces \
 		-I$(PREFIX)/lib/bplib/interfaces \
 		-I$(PREFIX)/lib/bclib/interfaces \
 		$(TARGET_INCLUDES)
 
 LIBS=\
-		$(PREFIX)/lib/binhexlib/libraries/libbinhexlib.a \
+		../../binhexlib/sources/libbinhexlib.a \
 		$(PREFIX)/lib/bplib/libraries/libbplib.a \
 		$(PREFIX)/lib/bclib/libraries/libbclib.a \
 		$(TARGET_LIBRARIES)

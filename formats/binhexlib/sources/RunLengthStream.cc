@@ -103,6 +103,9 @@ METHOD(RunLengthStream,get,(CARD8* bbyte),BOOLEAN)
             if(length==0){
                 this->byte=code;
                 (*bbyte)=code;
+            }else if(length==(CARD8)1){
+                /* a run count of 1 would underflow DECR(length,2): corrupt. */
+                return(FALSE);
             }else{
                 DECR(length,2);
                 (*bbyte)=this->byte;

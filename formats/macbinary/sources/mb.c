@@ -389,7 +389,7 @@ static PROCEDURE(MacBinary_Skip,
     }
     if(padding>0){
         count=(CARD32)fread(buffer,sizeof(CARD8),padding,from);
-        if(count!=size){ return(FALSE); }
+        if(count!=padding){ return(FALSE); }
     }
     return(TRUE);
 }/*MacBinary_Skip;*/
@@ -649,7 +649,6 @@ static PROCEDURE(MacBinary_Extract,
 {
     MacBinary_FileInfoT     info;
     CARD32                  count;
-    BOOLEAN                 dontoverride=FALSE; /* useless.*/
     FILE*                   fdata;
     FILE*                   frsrc;
     FILE*                   finfo;
@@ -660,7 +659,6 @@ static PROCEDURE(MacBinary_Extract,
     if(fname==NIL){
         fname=info.name;
         FName_MacToNext(info.name);
-        dontoverride=TRUE;
         if(verbose){
             fprintf(stderr,"Using file name found in header: %s "
                     "(converted to NeXT encoding)\n",fname);

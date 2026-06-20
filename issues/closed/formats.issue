@@ -2,7 +2,41 @@
 #+TITLE: formats: binhextools build wiring + endianness + orphaned trees
 #+DATE: 2026-06-20
 
-* TODO [#A] formats: build wiring, byte-order, and dead/orphaned sources  :formats:build:memory:endianness:
+* DONE [#A] formats: build wiring, byte-order, and dead/orphaned sources  :formats:build:memory:endianness:
+  RESOLUTION (2026-06-20). All five programs (bh, seven, runlength, mb, s2d)
+  build clean under the strict flags. The AppleSingle/Double byte-order + layout
+  fixes are validated end-to-end: a hand-built big-endian AppleSingle is read
+  correctly (type/is), and a setfile -> type round-trip writes and reads back a
+  standard 26-byte-header big-endian AppleDouble (verified with od).
+  - binhextools: INCLUDES/LIBS repointed to the in-tree sibling
+    (-I../../binhexlib/interfaces, ../../binhexlib/sources/libbinhexlib.a), so it
+    no longer needs binhexlib installed into $(PREFIX). Builds and links.
+  - s2d.c strncpy("TEXT"/"UNIX",4) -> memcpy (OSType is a 4-byte tag, not a C
+    string); silences -Wstringop-truncation.
+  - mb.c: removed the useless dontoverride; MacBinary_Skip padding short-read
+    now compares to padding (not size).
+  - RunLengthStream.cc: a run count of 1 (which underflowed CARD8 DECR(length,2))
+    is now rejected as a corrupt stream.
+  - s2d.c ENDIANNESS: added be32/be16 get/put byte helpers and applied them to
+    every on-disk field (magic, version, entryCount, entry id/offset/length) on
+    both read and write. AppleSingle/Double are big-endian; the tool was silently
+    broken on little-endian hosts (no-op on big-endian, so no regression).
+  - s2d.c PACKING (additionally discovered): the in-memory header struct pads to
+    28 bytes but the on-disk header is 26, so entry seeks were off by 2. Added
+    AppleSD_HeaderDiskSize=26 and used it for all header reads/writes and the
+    seek-to-entries; setfile now writes header+entries+finfo at their on-disk
+    sizes with a corrected FinderInfo offset, producing a standard AppleDouble.
+  - s2d.c VALIDATION: AppleSD_CopyData range-checks the data-fork entry's
+    offset/length against the file size before fseek/fread.
+  KNOWN/DEFERRED:
+  - bh.c is still a non-functional stub (parses args, returns 0; the bodies are
+    empty). It builds, but implementing BinHex encode/decode is feature work; the
+    actual stream functionality lives in seven/runlength/binhexlib.
+  - The reported mb.c strcpy/strcat and type-pun findings do NOT exist in mb.c;
+    they were in the orphaned macbinary_to_triple/mb2t.c (misattributed).
+  - macbinary_to_triple/ and single_to_double/encours/ remain excluded from the
+    build (not in MODULES); they are abandoned/superseded WIP and are left in
+    place (not deleted) for the author to retire.
   Full-tree review 2026-06-20 (gcc/g++ 14, strict flags). Macintosh file-format
   tools (BinHex, MacBinary, single/double fork). The binhexlib stream core is
   clean and the BinHex 6-bit alphabet matches the spec; the *tools* are in poor

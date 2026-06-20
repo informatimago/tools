@@ -19,7 +19,6 @@ in the sources yet.
 * Open issues
 
 ** Build-blockers + memory/correctness (per module)
-- [[file:open/formats.issue][formats]]                    — binhextools install wiring, AppleSingle endianness, bh.c is a no-op stub, orphaned trees.
 - [[file:open/segment-and-line-utilities.issue][segment-and-line-utilities]] — fields strncpy underflow, segment sscanf stack overrun + unchecked fwrite, extractbit1 corruption.
 - [[file:open/bocrypt-cookie-encoding-base.issue][bocrypt-cookie-encoding-base]] — smallcrypt build+loadkey overflow, cookie crash bugs, encoding -from/-to broken, base 0/assert.
 - [[file:open/misc-tools.issue][misc-tools]]                 — primes --to dead, mpa precedence heap overflow, random-stat delete[], newmoon neg-modulo (all build clean).
@@ -33,6 +32,7 @@ in the sources yet.
 - [[file:closed/ascii-utilities.issue][ascii-utilities]]            — lc memmove/OOB guard, sevenbit snprintf+malloc, binskip, parity flag; builds clean.
 - [[file:closed/dosname.issue][dosname]]                    — literal-suffix (MfFile/Renamer/dosname), curDosName alloc, malloc/NULL guards, analyzeRun; builds clean.
 - [[file:closed/cplusinherited.issue][cplusinherited]]             — snprintf + larger definition buffers, fread off-by-two, GetNextWords/LoadRelations bounds, parse fixes; builds clean.
+- [[file:closed/formats.issue][formats]]                    — binhextools sibling wiring, s2d endianness+packing+validation, RunLength/mb fixes; builds clean, round-trip validated.
 
 ** Cross-cutting
 - [[file:closed/build-system.issue][build-system]]                — self-locating MAKEDIR (top + per-module), -Werror policy kept, strict-ISO guards delegated.
