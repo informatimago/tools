@@ -2,7 +2,29 @@
 #+TITLE: cplusinherited: sprintf buffer overflows
 #+DATE: 2026-06-20
 
-* TODO [#A] cplusinherited: stack buffer overflows + parse bugs  :cplusinherited:build:memory:
+* DONE [#A] cplusinherited: stack buffer overflows + parse bugs  :cplusinherited:build:memory:
+  RESOLUTION (2026-06-20). Builds clean under the strict flags; functional test
+  (Animal/Dog/Cat relations) prints the tree correctly with -a alphabetical sort.
+  - The eight perror message[256] sprintf -> snprintf with a %.200s precision on
+    the filename (truncating an over-long name in a diagnostic is harmless and
+    silences -Wformat-truncation).
+  - definition buffers (UpdateInterface/UpdateImplementation) sprintf -> snprintf
+    AND enlarged 128 -> 2200, so the "%s_SUPER"/"#define %s_SUPER %s" expansions
+    cannot overflow for long class names (the _SUPER case was a genuine
+    128-byte overflow).
+  - fread calls bounded to sizeof(buf)-2 so the trailing two NUL writes
+    (buf[size], buf[size+1]) stay in range when the file fills the buffer.
+  - GetNextWords bounds every write into wbuffer[1024] (imax guard) and uses
+    (unsigned char) ctype.
+  - classtree_new and both children mallocs NULL-checked (exit on OOM).
+  - LoadRelations takes a capacity (hmax) and stops filling hierarchy[] at the
+    array bound (caller passes sizeof/sizeof).
+  - UpdateInterface: while(pos>=0) so a 'class' at offset 0 is processed; the
+    backward newline scan no longer underflows (incpos>0 && prev!='\n').
+  - UpdateImplementation: backward scans guarded against negative indices,
+    classname copy bounded to its buffer, (unsigned char) ctype.
+  - switch(sortAlgorithm): added the missing break after case 1 so -a sorts
+    alphabetically only (no fall-through into depth sort).
   Full-tree review 2026-06-20 (gcc 14, strict flags). Generates C++ inheritance
   boilerplate by scanning header/relation files. The worst offender in the tree
   for memory safety. See [[build-system]].

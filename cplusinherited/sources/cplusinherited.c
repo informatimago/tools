@@ -56,7 +56,7 @@ typedef struct {
 
 
 static void LoadRelations(const char* filename,char* hbuffer,int hbufsize,
-                          EntryT* hierarchy,int* hcount)
+                          EntryT* hierarchy,int* hcount,int hmax)
 {
     FILE*               f;
     int                 size;
@@ -67,7 +67,7 @@ static void LoadRelations(const char* filename,char* hbuffer,int hbufsize,
         perror("LoadRelations fopen");
         exit(1);
     }
-    size=(int)fread(hbuffer,sizeof(char),(unsigned)hbufsize,f);
+    size=(int)fread(hbuffer,sizeof(char),(unsigned)(hbufsize-2),f);
     if(size==0){
         perror("LoadRelations fread");
         exit(1);
@@ -78,7 +78,7 @@ static void LoadRelations(const char* filename,char* hbuffer,int hbufsize,
     hbuffer[size+1]=(char)0;
     (*hcount)=0;
     p=hbuffer;
-    while((*p)!=(char)0){
+    while(((*p)!=(char)0)&&((*hcount)<hmax)){
         hierarchy[(*hcount)].classname=p;
         while(((*p)!='\n')&&((*p)!=(char)9)){
             p++;
@@ -113,6 +113,10 @@ static classdesc* classtree_new(const char* classname)
 {
     classdesc*          newnode;
     newnode=malloc(sizeof(*newnode));
+    if(newnode==NULL){
+        perror("classtree_new malloc");
+        exit(1);
+    }
     newnode->classname=classname;
     newnode->brother=NULL;
     newnode->subclasses=NULL;
@@ -245,6 +249,10 @@ static void classtree_sortAlphabetically(classdesc* tree)
     count=classtree_numberOfChildren(tree);
     if(count>1){
         children=(classdesc**)malloc(sizeof(classdesc*)*(size_t)count);
+        if(children==NULL){
+            perror("classtree_sortAlphabetically malloc");
+            exit(1);
+        }
         child=tree->subclasses;
         for(i=0;i<count;i++){
             children[i]=child;
@@ -300,6 +308,10 @@ static int classtree_sortDepth(classdesc* tree)
     count=classtree_numberOfChildren(tree);
     if(count>1){
         children=(treeAndDepthT*)malloc(sizeof(treeAndDepthT)*(size_t)count);
+        if(children==NULL){
+            perror("classtree_sortDepth malloc");
+            exit(1);
+        }
         child=tree->subclasses;
         for(i=0;i<count;i++){
             d=classtree_sortDepth(child);
@@ -409,25 +421,32 @@ static void GetNextWords(char* string,int pos,char** words,int wcount)
 {
     int         i;
     int         w;
+    const int   imax=(int)sizeof(wbuffer)-1;
             
     i=0;
     w=0;
     while(w<wcount){
         words[w]=wbuffer+i;
-        if(ispunct(string[pos])){
-            wbuffer[i]=string[pos];
-            i++;
-            pos++;
-        }else{
-            while(isalnum(string[pos])){
+        if(ispunct((unsigned char)string[pos])){
+            if(i<imax){
                 wbuffer[i]=string[pos];
-                pos++;
                 i++;
             }
+            pos++;
+        }else{
+            while(isalnum((unsigned char)string[pos])){
+                if(i<imax){
+                    wbuffer[i]=string[pos];
+                    i++;
+                }
+                pos++;
+            }
         }
-        wbuffer[i]=(char)0;
-        i++;
-        while(isspace(string[pos])){
+        if(i<=imax){
+            wbuffer[i]=(char)0;
+            i++;
+        }
+        while(isspace((unsigned char)string[pos])){
             pos++;
         }
         w++;
@@ -451,13 +470,13 @@ static int UpdateInterface(int size,EntryT* hierarchy,int hcount)
 {
     int             pos;
     char*           words[5];
-    char            definition[128];
+    char            definition[2200];
     int             inclen;
     int             incpos;
             
     pos=0;
     pos=Pos(dbuffer,"class",(unsigned int)pos);
-    while(pos>0){
+    while(pos>=0){
         GetNextWords(dbuffer,(signed)pos,words,5);
         if((strcmp(words[2],":")==0)
            &&(strcmp(words[3],"public")==0)){
@@ -466,14 +485,13 @@ static int UpdateInterface(int size,EntryT* hierarchy,int hcount)
                        words[1],words[4]);
             }
                         
-            sprintf(definition,"#define %s_SUPER %s\n",
+            snprintf(definition,sizeof(definition),"#define %s_SUPER %s\n",
                     words[1],words[4]);
             inclen=(int)strlen(definition);
             incpos=pos;
-            while((dbuffer[incpos])!='\n'){
+            while((incpos>0)&&(dbuffer[incpos-1]!='\n')){
                 incpos--;
             }
-            incpos++;
             MoveUp(dbuffer+incpos,dbuffer+incpos+inclen,size-incpos+1);
             strncpy(dbuffer+incpos,definition,(unsigned)inclen);
             size+=inclen;
@@ -500,7 +518,7 @@ static void CorrectInterfaces(const char* filename,EntryT* hierarchy,int hcount)
         perror("CorrectInterfaces fopen");
         exit(1);
     }
-    size=(int)fread(fbuffer,sizeof(char),sizeof(fbuffer),f);
+    size=(int)fread(fbuffer,sizeof(char),sizeof(fbuffer)-2,f);
     if(size==0){
         perror("CorrectInterfaces fread");
         exit(1);
@@ -523,15 +541,15 @@ static void CorrectInterfaces(const char* filename,EntryT* hierarchy,int hcount)
         f=fopen(p,"r+");
         if(f==NULL){
             char        message[256];
-            sprintf(message,"CorrectInterfaces fopen %s",p);
+            snprintf(message,sizeof(message),"CorrectInterfaces fopen %.200s",p);
             perror(message);
             exit(1);
         }
         /*  load the file: */
-        size=(int)fread(dbuffer,sizeof(char),sizeof(dbuffer),f);
+        size=(int)fread(dbuffer,sizeof(char),sizeof(dbuffer)-2,f);
         if(size==0){
             char        message[256];
-            sprintf(message,"CorrectInterfaces fread %s",p);
+            snprintf(message,sizeof(message),"CorrectInterfaces fread %.200s",p);
             perror(message);
             exit(1);
         }
@@ -544,7 +562,7 @@ static void CorrectInterfaces(const char* filename,EntryT* hierarchy,int hcount)
         /*  save the file: */
         if(fseek(f,0,SEEK_SET)<0){
             char        message[256];
-            sprintf(message,"CorrectInterfaces fseek %s",p);
+            snprintf(message,sizeof(message),"CorrectInterfaces fseek %.200s",p);
             perror(message);
             exit(1);
         }
@@ -552,7 +570,7 @@ static void CorrectInterfaces(const char* filename,EntryT* hierarchy,int hcount)
         wsize=(int)fwrite(dbuffer,sizeof(char),(unsigned)size,f);
         if(wsize!=size){
             char        message[256];
-            sprintf(message,"CorrectInterfaces fwrite %s",p);
+            snprintf(message,sizeof(message),"CorrectInterfaces fwrite %.200s",p);
             perror(message);
             exit(1);
         }
@@ -567,20 +585,23 @@ static int UpdateImplementation(int size,EntryT* hierarchy,int hcount)
     int     pos;
     int     i,j,l;
     char    classname[128];
-    char    definition[128];
+    char    definition[2200];
             
     pos=0;
     while(dbuffer[pos]!=(char)0){
         if(strncmp(dbuffer+pos,"::",2)==0){
             i=pos-1;
-            while(!isalnum(dbuffer[i])){
+            while((i>0)&&!isalnum((unsigned char)dbuffer[i])){
                 i--;
             }
             j=i;
-            while(isalnum(dbuffer[i])){
+            while((i>=0)&&isalnum((unsigned char)dbuffer[i])){
                 i--;
             }
             l=j-i;
+            if(l>(int)sizeof(classname)-1){
+                l=(int)sizeof(classname)-1;
+            }
             strncpy(classname,dbuffer+i+1,(unsigned)l);
             classname[l]=(char)0;
         }else if(strncmp(dbuffer+pos,"inherited",9)==0){
@@ -588,7 +609,7 @@ static int UpdateImplementation(int size,EntryT* hierarchy,int hcount)
                 printf("I don't have %s in class hierarchy!\n",
                        classname);
             }
-            sprintf(definition,"%s_SUPER",classname);
+            snprintf(definition,sizeof(definition),"%s_SUPER",classname);
             l=(int)strlen(definition);
             MoveUp(dbuffer+pos,dbuffer+pos+l-9,size-pos);
             strncpy(dbuffer+pos,definition,(unsigned)l);
@@ -614,7 +635,7 @@ static void CorrectImplementation(const char* filename,
         perror("CorrectImplementation fopen");
         exit(1);
     }
-    size=(int)fread(fbuffer,sizeof(char),sizeof(fbuffer),f);
+    size=(int)fread(fbuffer,sizeof(char),sizeof(fbuffer)-2,f);
     if(size==0){
         perror("CorrectImplementation fread");
         exit(1);
@@ -634,14 +655,14 @@ static void CorrectImplementation(const char* filename,
         f=fopen(p,"r+");
         if(f==NULL){
             char        message[256];
-            sprintf(message,"CorrectImplementation fopen %s",p);
+            snprintf(message,sizeof(message),"CorrectImplementation fopen %.200s",p);
             perror(message);
             exit(1);
         }
-        size=(int)fread(dbuffer,sizeof(char),sizeof(dbuffer),f);
+        size=(int)fread(dbuffer,sizeof(char),sizeof(dbuffer)-2,f);
         if(size==0){
             char        message[256];
-            sprintf(message,"CorrectImplementation fread %s",p);
+            snprintf(message,sizeof(message),"CorrectImplementation fread %.200s",p);
             perror(message);
             exit(1);
         }
@@ -652,7 +673,7 @@ static void CorrectImplementation(const char* filename,
             
         if(fseek(f,0,SEEK_SET)<0){
             char        message[256];
-            sprintf(message,"CorrectImplementation fseek %s",p);
+            snprintf(message,sizeof(message),"CorrectImplementation fseek %.200s",p);
             perror(message);
             exit(1);
         }
@@ -660,7 +681,7 @@ static void CorrectImplementation(const char* filename,
         wsize=(int)fwrite(dbuffer,sizeof(char),(unsigned)size,f);
         if(wsize!=size){
             char        message[256];
-            sprintf(message,"CorrectImplementation fwrite %s",p);
+            snprintf(message,sizeof(message),"CorrectImplementation fwrite %.200s",p);
             perror(message);
             exit(1);
         }
@@ -726,11 +747,13 @@ int main(int argc,char**argv)
         return(1);
     }
 
-    LoadRelations(relationFName,hbuffer,sizeof(hbuffer),hierarchy,&hcount);
+    LoadRelations(relationFName,hbuffer,sizeof(hbuffer),hierarchy,&hcount,
+                  (int)(sizeof(hierarchy)/sizeof(hierarchy[0])));
     tree=BuildTree(hierarchy,hcount);
     switch(sortAlgorithm){
     case 1:
         classtree_sortAlphabetically(tree);
+        break;
     case 2:
         classtree_sortDepth(tree);
         break;
