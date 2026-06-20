@@ -1,3 +1,4 @@
+MAKEDIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))../../common/makedir)
 MODULE=environment
 include $(MAKEDIR)/module
 

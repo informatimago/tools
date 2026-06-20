@@ -1,3 +1,4 @@
+MAKEDIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))../../common/makedir)
 MODULE=segment
 include $(MAKEDIR)/module
 

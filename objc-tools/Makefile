@@ -1,3 +1,4 @@
+MAKEDIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))../../common/makedir)
 MODULE=objc-tools
 include $(MAKEDIR)/module
 

@@ -46,8 +46,12 @@
 #******************************************************************************
 TARGET  := $(shell uname)
 PREFIX  := /usr/local
-MAKEDIR := $(HOME)/src/public/common/makedir
-#MAKEDIR := $(shell dirname `pwd`)/common/makedir
+# Locate the sibling "common" checkout from this Makefile's own directory, so
+# the build does not depend on $(HOME) (which broke "sudo make", where $(HOME)
+# becomes /root).  Simple (:=) assignments, so COMMON=/MAKEDIR=/PREFIX= passed
+# on the make command line still override them.
+COMMON  := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))../common)
+MAKEDIR := $(COMMON)/makedir
 
 MODULES=\
 	ascii-utilities \
@@ -82,20 +86,20 @@ include $(MAKEDIR)/project
 
 m1:
 	make PREFIX=$(HOME)/install \
-		 COMMON=$(HOME)/src-new/common \
-		 MAKEDIR=$(HOME)/src-new/common/makedir \
+		 COMMON=$(COMMON) \
+		 MAKEDIR=$(MAKEDIR) \
 		cvsclean depend install
 
 m1i:
 	make PREFIX=$(HOME)/install \
-		 COMMON=$(HOME)/src-new/common \
-		 MAKEDIR=$(HOME)/src-new/common/makedir \
+		 COMMON=$(COMMON) \
+		 MAKEDIR=$(MAKEDIR) \
 		install
 
 m2:
 	make PREFIX=/local \
-		 COMMON=$(HOME)/src-new/common \
-		 MAKEDIR=$(HOME)/src-new/common/makedir \
+		 COMMON=$(COMMON) \
+		 MAKEDIR=$(MAKEDIR) \
 		cvsclean depend install 
 
 #### Makefile                         --                     --          ####

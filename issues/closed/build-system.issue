@@ -2,7 +2,25 @@
 #+TITLE: build system: hardcoded MAKEDIR, strict -Werror policy, module wiring
 #+DATE: 2026-06-20
 
-* TODO [#A] build system: portability and the -Werror policy  :build:makedir:
+* DONE [#A] build system: portability and the -Werror policy  :build:makedir:
+  RESOLUTION (2026-06-20):
+  - Top Makefile: MAKEDIR/COMMON now self-locate the sibling =../common= via
+    =$(abspath $(dir $(lastword $(MAKEFILE_LIST)))../common)= instead of the
+    hardcoded =$(HOME)/src/public/common/makedir=; the m1/m2 recipes use those
+    vars. Validated: =make showvars= reports MAKEDIR=/.../common/makedir with no
+    override.
+  - Every module entry Makefile that lacked a MAKEDIR default got a self-locating
+    =MAKEDIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))../../common/makedir)=
+    (ascii-utilities already had one). Since =makedir/project= recurses with an
+    explicit =MAKEDIR=$(MAKEDIR)= on the sub-make command line, the top-level
+    value still wins; the default only applies to standalone =cd MODULE && make=.
+    Validated: =cd romain && make= builds with no MAKEDIR passed.
+  - -Werror policy DECISION: keep the strict flag set; fix the real bugs at each
+    site (done in the per-module issues) rather than relaxing warnings.
+  - The strict-ISO header guards (=__linux__=, =_DEFAULT_SOURCE=/=-D_GNU_SOURCE=,
+    =<strings.h>=/=<unistd.h>=) are fixed in [[ascii-utilities]],
+    [[bocrypt-cookie-encoding-base]] and [[segment-and-line-utilities]]; the
+    binhextools install-ordering is fixed in [[formats]].
   Full-tree review 2026-06-20. The tools build by including =$(MAKEDIR)/{project,
   module,common}= from the common checkout and linking the common libs installed
   under =$(PREFIX)/lib= (here =/usr/local/lib=). Several cross-cutting build
