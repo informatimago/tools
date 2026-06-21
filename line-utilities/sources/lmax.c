@@ -35,53 +35,36 @@ static void usage(char* name)
 
 #define linesize    (4*BUFSIZ)
 
-static void check_error(void* res){
-    if(res==0){
-        perror("got an error");
-        exit(1);
-    }
-}
-
-
 static int lmax(FILE* file,int limit)
 {
     char            buffer[linesize];
-    int             result;
+    int             seen_short=0;
+    int             seen_long=0;
     size_t          len;
-            
-    result=0;
-    while(!feof(file)){
-        check_error(fgets(buffer,linesize,file));
+
+    /* Read until EOF.  fgets() returns NULL at EOF *and* on error; the old
+       code fed that NULL to check_error() which perror()+exit(1)'d on every
+       normal EOF.  Drive the loop on the fgets() return and only treat a real
+       stream error (ferror) as failure. */
+    while(fgets(buffer,linesize,file)!=NULL){
         len=strlen(buffer);
-        if(len<=limit){
-            while((!feof(file))&&(len<=limit)){
-                check_error(fgets(buffer,linesize,file));
-                len=strlen(buffer);
-            }
-            if(feof(file)){
-                return(0);
-            }else{
-                while(!feof(file)){
-                    check_error(fgets(buffer,linesize,file));
-                }
-                return(1);
-            }
+        if(len<=(size_t)limit){
+            seen_short=1;
         }else{
-            while((!feof(file))&&(len>limit)){
-                check_error(fgets(buffer,linesize,file));
-                len=strlen(buffer);
-            }
-            if(feof(file)){
-                return(2);
-            }else{
-                while(!feof(file)){
-                    check_error(fgets(buffer,linesize,file));
-                }
-                return(1);
-            }
+            seen_long=1;
         }
     }
-    return(result);
+    if(ferror(file)){
+        perror("got an error");
+        exit(1);
+    }
+    if(seen_short&&seen_long){
+        return(1);
+    }else if(seen_long){
+        return(2);
+    }else{
+        return(0);
+    }
 }/*lmax*/
     
     
