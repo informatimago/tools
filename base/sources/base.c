@@ -106,6 +106,9 @@ LEGAL
         }
         k=l;
 
+        if(n==0){
+            tampon[l++]='0';
+        }
         while(n>0){
             tampon[l++]=digits[n%base];
             n/=base;
@@ -137,6 +140,11 @@ int main(int argc,const char**  argv)
 
   n=atoi(argv[1]);
   base=atoi(argv[2]);
+
+  if((base<2)||(base>36)){
+    fprintf(stderr,"%s: base must be between 2 and 36 (got %d).\n",argv[0],base);
+    exit(1);
+  }
 
   int_to_base(n,base,tampon);
 

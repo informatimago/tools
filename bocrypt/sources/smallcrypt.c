@@ -52,7 +52,7 @@ static void qerror(const char* format,...)
     char        message[BUFSIZ];
         
     va_start(plist,format);
-    vsprintf(message,format,plist);
+    vsnprintf(message,sizeof(message),format,plist);
     va_end(plist);
     perror(message);
 }/*qerror*/
@@ -96,7 +96,11 @@ static char* loadkey(FILE* keyfile)
         return(NULL);
     }
 
-    key=malloc((unsigned)size);
+    key=malloc((unsigned)size+1);
+    if(key==NULL){
+        qerror("malloc '%s'",pname);
+        return(NULL);
+    }
     key[0]='\0';
             
     while((size>0)&&(fgets(buffer,sizeof(buffer),keyfile)!=NULL)){
@@ -117,19 +121,19 @@ static char* dpos(/*char*/int c,/*char*/int d,const char* key,int keyindex)
 {
     char*       kip;
         
-    kip=index(key+keyindex,c);
+    kip=strchr(key+keyindex,c);
     while(kip!=NULL){
         if(kip[1]==d){
             return(kip);
         }
-        kip=index(kip+1,c);
+        kip=strchr(kip+1,c);
     }
-    kip=index(key,c);
+    kip=strchr(key,c);
     while(kip!=NULL){
         if(kip[1]==d){
             return(kip);
         }
-        kip=index(kip+1,c);
+        kip=strchr(kip+1,c);
     }
     return(NULL);
 }/*dpos;*/
@@ -137,7 +141,6 @@ static char* dpos(/*char*/int c,/*char*/int d,const char* key,int keyindex)
     
 static int encrypt(const char* key,FILE* input,FILE* output)
 {
-    int             keylength;
     int             keyindex;
     const char*     kip;
     const char*     kop;
@@ -145,14 +148,13 @@ static int encrypt(const char* key,FILE* input,FILE* output)
     int             count;
         
     count=0;
-    keylength=(int)strlen(key);
     keyindex=2;
     c=fgetc(input);
     while(c!=EOF){
         if((c!='\n')&&(c!='\0')){
-            kip=index(key+keyindex,c);
+            kip=strchr(key+keyindex,c);
             if(kip==NULL){
-                kip=index(key,c);
+                kip=strchr(key,c);
             }
             if(kip==NULL){
                 if((c!=' ')&&(!quiet)){
@@ -161,7 +163,7 @@ static int encrypt(const char* key,FILE* input,FILE* output)
                             pname,c);
                 }
                 c=key[2];
-                kip=index(key+keyindex,c);
+                kip=strchr(key+keyindex,c);
                 if(kip==NULL){
                     kip=key+2;
                 }
@@ -208,7 +210,6 @@ static int encrypt(const char* key,FILE* input,FILE* output)
     
 static int decrypt(const char* key,FILE* input,FILE* output)
 {
-    int             keylength;
     int             keyindex;
     const char*     kip;
     int             c;
@@ -216,7 +217,6 @@ static int decrypt(const char* key,FILE* input,FILE* output)
     int             count;
         
     count=0;
-    keylength=(int)strlen(key);
     keyindex=0;
     c=fgetc(input);
     while(c!=EOF){
@@ -295,7 +295,7 @@ int main(int argc,char* argv[])
     char*       kfname=NULL;
     char*       ifname=NULL;
         
-    pname=rindex(argv[0],'/');
+    pname=strrchr(argv[0],'/');
     if(pname==NULL){
         pname=argv[0];
     }else{

@@ -2,7 +2,28 @@
 #+TITLE: bocrypt / cookie / encoding / base: build + crash + option bugs
 #+DATE: 2026-06-20
 
-* TODO [#A] bocrypt, cookie, encoding, base: build breaks and crash bugs  :bocrypt:cookie:encoding:base:build:memory:
+* DONE [#A] bocrypt, cookie, encoding, base: build breaks and crash bugs  :bocrypt:cookie:encoding:base:build:memory:
+  RESOLUTION (2026-06-20). All four modules build clean under the strict flags.
+  Validated: base 0->"0", 255->"FF", base 40-> graceful error; cookie --help
+  prints usage and exits (no crash); nema does an end-to-end -from/-to
+  conversion (macintosh->macintosh) and -t still means dump-table; smallcrypt
+  builds and the cipher behaviour is unchanged.
+  - bocrypt/smallcrypt.c: removed the dead keylength (the cipher wraps on the key
+    NUL, not keylength); BSD index/rindex -> strchr/strrchr; loadkey now
+    malloc(size+1) with a NULL check (was a 1-byte heap overflow when the last
+    key line had no newline); qerror uses vsnprintf.
+  - cookie/cookie.c: getdefaultfilenames no longer newstr()s the NIL terminator;
+    the argv scan is ii<argc (was argv[argc] -> NULL deref) and --help prints a
+    usage line; the selected cookie file's fopen is NULL-checked before fseek;
+    loadfilenames keeps the last char when a line lacks a newline and NULL-checks
+    its malloc.
+  - encoding/encoding.c: the documented single-dash -from/-to now work (added
+    STR_CASE3 for -f/-from/--from; the to-case is -to/--to). -t is dump-table
+    only (the old -t/--to entry shadowed it). MakeTempName is bounded (snprintf)
+    and escapestr bounds its writes into buffer[1024].
+  - base/base.c: prints "0" for zero (the while(n>0) loop produced an empty
+    string); main validates 2<=base<=36 with a clean error instead of letting
+    int_to_base's assert abort.
   Full-tree review 2026-06-20 (gcc 14, strict flags). bocrypt.c and xor.c are
   clean and crypto-correct; the problems are concentrated in smallcrypt.c and in
   the cookie/encoding/base front-ends. See [[build-system]] and

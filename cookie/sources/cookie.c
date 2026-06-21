@@ -82,11 +82,12 @@ LEGAL
     static void getdefaultfilenames(void)
     {
         INT16       i;
-        i=-1;
-        do{
-            i++;
+        i=0;
+        while(defaultfiles[i]!=NIL){
             loadedfiles[i]=newstr(defaultfiles[i]);
-        }while(defaultfiles[i]!=NIL);
+            i++;
+        }
+        loadedfiles[i]=NIL;
     }/* ; */
     
     
@@ -114,10 +115,14 @@ LEGAL
                 }
                 if(filename[0]!='#'){
                     l=(INT32)strlen(filename);
-                    loadedfiles[i]=malloc((unsigned)l); 
-                    /* (we're removing the newline). */
-                    strncpy(loadedfiles[i],filename,(unsigned)(l-1));
-                    loadedfiles[i][l-1]='\0';
+                    if((l>0)&&(filename[l-1]=='\n')){
+                        filename[l-1]='\0';
+                    }
+                    loadedfiles[i]=malloc((unsigned)strlen(filename)+1);
+                    if(loadedfiles[i]==NIL){
+                        break;
+                    }
+                    strcpy(loadedfiles[i],filename);
                     i++;
                 }
             }
@@ -155,8 +160,11 @@ LEGAL
 
         if(argc>1){
             int ii;
-            for(ii=1;ii<=argc;ii++){
+            for(ii=1;ii<argc;ii++){
                 if(0==strcmp(argv[ii],"--help")){
+                    printf("%s: print a random cookie (fortune) from the cookie "
+                           "files listed in $%s.\n",argv[0],cookienvarname);
+                    return(0);
                 }
             }
         }
@@ -193,6 +201,10 @@ LEGAL
         }
         i--;
         fd=fopen(loadedfiles[i],"r");
+        if(fd==NIL){
+            fprintf(stderr,"cookie: cannot open %s\n",loadedfiles[i]);
+            return(1);
+        }
         total-=sizes[i];
         position-=total;
         fseek(fd,(signed)position,SEEK_SET);

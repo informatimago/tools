@@ -153,6 +153,9 @@ extern int      sys_nerr;
 #define STR_CASE(str)        }else if(0==strcmp(str_switch_string,(str))){
 #define STR_CASE2(str1,str2) }else if((0==strcmp(str_switch_string,(str1))) \
                                       ||(0==strcmp(str_switch_string,(str2)))){
+#define STR_CASE3(str1,str2,str3) }else if((0==strcmp(str_switch_string,(str1))) \
+                                      ||(0==strcmp(str_switch_string,(str2))) \
+                                      ||(0==strcmp(str_switch_string,(str3)))){
 #define STR_DEFAULT          }else{
 #define STR_END              }}
 
@@ -165,10 +168,9 @@ static void printerr(int err)
 }/*printerr*/
     
 
-static void MakeTempName(char* src,char* temp)
+static void MakeTempName(char* src,char* temp,size_t size)
 {
-    strcpy(temp,src);
-    strcat(temp,".nema[ ]");
+    snprintf(temp,size,"%s.nema[ ]",src);
 }/*MakeTempName*/
     
 
@@ -356,10 +358,10 @@ static const char* escapestr(const char* string)
     static char buffer[1024];
     int i=0;
     int j=0;
-    while(string[i]!=0){
+    while((string[i]!=0)&&(j<(int)sizeof(buffer)-5)){
         if((string[i]<32)||(126<string[i])){
             buffer[j++]='\\';
-            sprintf(buffer+j,"%03o",(unsigned char)(string[i]));
+            snprintf(buffer+j,sizeof(buffer)-(size_t)j,"%03o",(unsigned char)(string[i]));
             j+=3;
         }else if((string[i]=='\\')||(string[i]=='"')){
             buffer[j++]='\\';
@@ -459,7 +461,7 @@ int main(int argc,char** argv,char** envp)
                 usage(pname);
                 return(1);
             }}
-        STR_CASE2("-f","--from"){
+        STR_CASE3("-f","-from","--from"){
             nooption=FALSE;
             i++;
             if(i<argc){
@@ -476,7 +478,7 @@ int main(int argc,char** argv,char** envp)
                 usage(pname);
                 return(1);
             }}
-        STR_CASE2("-t","--to"){
+        STR_CASE2("-to","--to"){
             nooption=FALSE;
             i++;
             if(i<argc){
@@ -592,7 +594,7 @@ int main(int argc,char** argv,char** envp)
                         "### I cannot open the input file \"%s\";"
                         " skipping it.\n",argv[i]);
             }else{
-                MakeTempName(argv[i],TempName);
+                MakeTempName(argv[i],TempName,sizeof(TempName));
                 fout=fopen(TempName,"w");
                 if(fout==NULL){
                     fprintf(stderr,
