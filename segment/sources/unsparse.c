@@ -44,6 +44,7 @@ LEGAL
 #include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/param.h>
@@ -174,14 +175,27 @@ LEGAL
 
     static void unsparse(char* fname)
     {
-        char* fdir=dirname(fname);
+        char* fdircopy;
+        char* fdir;
         struct statfs s;
-        int res=statfs(fdir,&s);
+        int res;
         size_t size;
         off_t  position;
         off_t  eof;
         int    fd;
         unsigned char* buffer;
+
+        /* dirname() may modify its argument in place, so work on a copy and
+           keep fname intact for the open()/printf() below. */
+        fdircopy=malloc(strlen(fname)+1);
+        if(fdircopy==0){
+            perror("malloc");
+            return;
+        }
+        strcpy(fdircopy,fname);
+        fdir=dirname(fdircopy);
+        res=statfs(fdir,&s);
+        free(fdircopy);
 
         printf("Processing %s...\n",fname);
         if(res<0){
