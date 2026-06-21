@@ -213,8 +213,8 @@ SequenceCounter::SequenceCounter(void)
 SequenceCounter::~SequenceCounter(void)
 {
     if(_lengthCounts[0]!=NULL){
-        delete _lengthCounts[0];
-        delete _lengthCounts[1];
+        delete[] _lengthCounts[0];
+        delete[] _lengthCounts[1];
     }
 }//~SequenceCounter;
     
@@ -227,7 +227,7 @@ void SequenceCounter::reset(long maxlength)
     _maxLength=maxlength;
     for(k=0;k<2;k++){
         if(_lengthCounts[k]!=NULL){
-            delete _lengthCounts[k];
+            delete[] _lengthCounts[k];
         }
         _lengthCounts[k]=new long[_maxLength];
         for(i=0;i<_maxLength;i++){
@@ -254,7 +254,7 @@ void SequenceCounter::process(short bit)
                     for(;i<_currentLength;i++){
                         newCounts[i]=0;
                     }
-                    delete _lengthCounts[k];
+                    delete[] _lengthCounts[k];
                     _lengthCounts[k]=newCounts;
                 }
             }

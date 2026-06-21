@@ -61,14 +61,22 @@ static integer* ComputePrimesTo(integer n)
     integer         halfn;
     integer*        primes;
     integer*        curnum;
+    integer         limit;
 
-
+    limit=n;     /* the requested upper bound (n is rounded up below) */
+    if((n<2)||(n>(max_integer/(2*bits_per_integer))-bits_per_integer)){
+        fprintf(stderr,"primes: the limit is out of range.\n");
+        exit(2);
+    }
     n+=2;
     bitsmax=(n/2+bits_per_integer-1)/bits_per_integer;
     n=2*bitsmax*bits_per_integer;
     halfn=n/2;
     bits=malloc((size_t)round4k((size_t)bitsmax*sizeof(integer)));
-    /* SEE: seems to be a bug for large allocation sizes ?*/
+    if(bits==NULL){
+        perror("primes: malloc");
+        exit(2);
+    }
         
     /* set the bitset to full bits;*/
     curbits=bits;
@@ -78,46 +86,51 @@ static integer* ComputePrimesTo(integer n)
     }
     /* reset the last bit as watchdog for searching next prime.*/
     bits[bitsmax-1]=~(1<<(bits_per_integer-1));
-    /*bits[(halfn-1)/bits_per_integer]&=~(1<<((n-1)%bits_per_integer));*/
         
-    primecount=2;
+    /* Sieve of Eratosthenes over the odd numbers: bit b <-> 2*b+3. */
+    primecount=2;                       /* counts 2 and 3 */
     curprime=3;
     while(curprime<n){
-        bit=(curprime-3)/2+curprime;
+        bit=(curprime-3)/2+curprime;    /* first odd multiple 3*curprime */
         while(bit<halfn){
-            if(debug){printf("exclude bit %"FMT_integer"\n",bit);}
             bits[bit/bits_per_integer]&=~(1<<(bit%bits_per_integer));
             bit+=curprime;
         }
         bit=(curprime-3)/2+1;
-        while(!(bits[bit/bits_per_integer]&(1<<(bit%bits_per_integer)))){
+        while((bit<halfn)
+              &&!(bits[bit/bits_per_integer]&(1<<(bit%bits_per_integer)))){
             bit++;
         }
+        if(bit>=halfn){
+            break;
+        }
         curprime=2*bit+3;
-        if(debug){printf("found prime %"FMT_integer"\n",curprime);}
         primecount++;
     }
-    if(debug){printf("primecount %"FMT_integer"\n",primecount);}
         
     primes=malloc((size_t)round4k((size_t)(primecount+1)*sizeof(integer)));
-    if(debug){printf("primes=%p\n",(void*)primes);}
-    if(debug){printf("after last primes=%p\n",(void*)(primes+(primecount+1)));}
+    if(primes==NULL){
+        perror("primes: malloc");
+        exit(2);
+    }
+    /* Emit 2, then every odd prime up to the requested limit (bit 0 == 3).
+       Bounded by halfn so it never reads past the bitset. */
     curnum=primes;
-    *curnum++=2;
-    curprime=3;
+    if(limit>=2){
+        *curnum++=2;
+    }
     bit=0;
-    while(curprime<n){
-        bit++;
-        while(!(bits[bit/bits_per_integer]&(1<<(bit%bits_per_integer)))){
-            if(debug){printf("skipped bit %"FMT_integer"\n",bit);}
-            bit++;
+    while(bit<halfn){
+        if(bits[bit/bits_per_integer]&(1<<(bit%bits_per_integer))){
+            curprime=2*bit+3;
+            if(curprime>limit){
+                break;
+            }
+            *curnum++=curprime;
         }
-        curprime=2*bit+3;
-        if(debug){printf("found prime %"FMT_integer"\n",curprime);}
-        *curnum++=curprime;
+        bit++;
     }
     *curnum++=0;
-    if(debug){printf("curnum=%p\n",(void*)curnum);}
     free(bits);
     return(primes);
 }/*ComputePrimesTo;*/
@@ -270,7 +283,7 @@ int main(int argc,char** argv)
                 argv[0]);
         return(2);
     }
-    if((strcmp(argv[1],"to")||(strcmp(argv[1],"--to")==0))==0){
+    if((strcmp(argv[1],"to")==0)||(strcmp(argv[1],"--to")==0)){
         primelist=ComputePrimesTo(n);
         PrintNumbers(primelist);
         free(primelist);

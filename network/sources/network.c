@@ -190,6 +190,7 @@ LEGAL
     {
             List_P      e;
         e=malloc(sizeof(List_T));
+        if(e==NULL){ perror("network: out of memory"); exit(1); }
         e->next=NULL;
         e->data=NULL;
         return(e);
@@ -226,6 +227,7 @@ LEGAL
     static String_P String_New(char* string)
     {
         String_P s=malloc(strlen(string)+1);
+        if(s==NULL){ perror("network: out of memory"); exit(1); }
         strcpy(s,string);
         return(s);
     }/*String_New;*/
@@ -280,6 +282,7 @@ LEGAL
     {
         Network_NodeP       node;
         node=malloc(sizeof(Network_NodeT));
+        if(node==NULL){ perror("network: out of memory"); exit(1); }
         node->neighbors=NULL;
         node->data=NULL;
         node->counter=0;

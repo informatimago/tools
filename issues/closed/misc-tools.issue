@@ -2,7 +2,29 @@
 #+TITLE: misc tools: latent bugs (primes, mpa, random-stat, newmoon, network, geturls)
 #+DATE: 2026-06-20
 
-* TODO [#B] misc tools: latent runtime bugs (these modules build clean)  :primes:mpa:random-stat:newmoon:network:geturls:memory:logic:
+* DONE [#B] misc tools: latent runtime bugs (these modules build clean)  :primes:mpa:random-stat:newmoon:network:geturls:memory:logic:
+  RESOLUTION (2026-06-20). All modules build clean and run.
+  - primes/primes.c: fixed the inverted --to test (now '--to N' works like
+    'to N'). While validating that, found the sieve itself was wrong for ALL
+    inputs (pre-existing): the extraction loop did bit++ before testing, so it
+    skipped bit 0 (the prime 3); it had no halfn bound, so it read past the
+    bitset (garbage like 65667); and it emitted primes up to the rounded-up
+    bound instead of the requested limit. Rewrote ComputePrimesTo to start at
+    bit 0, stop at halfn, and cap output at the requested limit; added a
+    large-N overflow guard and malloc NULL-checks. Validated: 'to 30' ->
+    2 3 5 7 11 13 17 19 23 29; 'to 100' -> all 25 primes up to 97; 'to 2' -> 2.
+  - mpa/make-person-aliases.c: operator-precedence heap under-allocation fixed
+    (sizeof(char*)*(size+1), was sizeof(char*)*size+1).
+  - random-stat/random-stat.cc: delete[] for the new long[] arrays (was scalar
+    delete -> UB) at all four sites.
+  - newmoon/newmoon.c: non-negative modulo for the name index and a namemod>0
+    guard (was a negative %namemod OOB read); bounded the buffer[256] writes.
+  - network/network.c, geturls/geturls.c: NULL-check every malloc (NULL deref on
+    OOM). Confirmed: no system/popen/exec, input read with bounded buffers, so
+    no injection surface.
+  NOTE: ComputeOnePrimeFrom (the 'next-from' path) shares the old sieve shape
+  and likely has analogous issues; it was not in the validated path and is left
+  for a follow-up.
   Full-tree review 2026-06-20 (gcc/g++ 14, strict flags). IMPORTANT: every module
   below compiles cleanly under the strict build -- these are *latent* runtime
   bugs, not build-blockers. Verified by building the whole tree against the

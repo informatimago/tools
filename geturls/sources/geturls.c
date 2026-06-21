@@ -110,6 +110,7 @@ static int* computeLengths(const char* strings[])
     int i;
     int n=sizeOfStringArray(strings);
     lens=(int*)malloc(sizeof(int)*(size_t)n);
+    if(lens==NULL){ perror("geturls: out of memory"); exit(1); }
     for(i=0;i<n;i++){
         lens[i]=(int)strlen(strings[i]);
     }
@@ -162,18 +163,21 @@ static void addUrl(char*** urls,int* allocatedUrls,int* numOfUrls,
     if((*urls)==0){
         (*allocatedUrls)=8;
         (*urls)=(char**)malloc(sizeof(char*)*(size_t)(*allocatedUrls));
+        if((*urls)==0){ perror("geturls: out of memory"); exit(1); }
     }
     if((*allocatedUrls)<=(*numOfUrls)+1){
         int i;
         char** oldUrls=(*urls);
         (*allocatedUrls)*=2;
         (*urls)=(char**)malloc(sizeof(char*)*(size_t)(*allocatedUrls));
+        if((*urls)==0){ perror("geturls: out of memory"); exit(1); }
         for(i=0;i<(*numOfUrls);i++){
             (*urls)[i]=oldUrls[i];
         }
         free(oldUrls);
     }
     (*urls)[(*numOfUrls)]=(char*)malloc(sizeof(char)*(size_t)(lengthOfUrl+1));
+    if((*urls)[(*numOfUrls)]==0){ perror("geturls: out of memory"); exit(1); }
     strncpy((*urls)[(*numOfUrls)],url,(unsigned)lengthOfUrl);
     (*urls)[(*numOfUrls)][lengthOfUrl]='\0';
     (*numOfUrls)++;
@@ -222,10 +226,12 @@ static void filterUrls(FILE* in,FILE* out)
     const size_t  BufferSize=10240;
     char*         inputBuffer=(char*)malloc(sizeof(char)*(BufferSize+1));
     int           readSize;
+    /* checked below once the remaining locals are declared */
     int           inputBufferSize=0;
     int           scannedSize;
     char**        urls;
-        
+
+    if(inputBuffer==0){ perror("geturls: out of memory"); exit(1); }
     lengths=computeLengths(starts);
     numOfEntries=sizeOfStringArray(starts);
     maxLength=maximumOfIntArray(lengths,numOfEntries);

@@ -404,9 +404,13 @@ char buf[MAXSIZE];
             for (i=0; i<256; buffer[i++]=' ');
             horizon = sqrt(1.0-y*y);
             i=charpos(horizon,xscale,xoffset);
-            buffer[i] = name[(i-xmin)%namemod];
+            if((i>=0)&&(i<256)&&(namemod>0)){
+                buffer[i] = name[(((i-xmin)%namemod)+namemod)%namemod];
+            }
             i=charpos(-horizon,xscale,xoffset);
-            buffer[i] = name[(i-xmin)%namemod];
+            if((i>=0)&&(i<256)&&(namemod>0)){
+                buffer[i] = name[(((i-xmin)%namemod)+namemod)%namemod];
+            }
             terminator = horizon*squisher;
             if (phase<FULLMOON) {
                 left = terminator;

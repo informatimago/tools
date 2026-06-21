@@ -238,7 +238,7 @@ static combinator_t* combinator_new(char** values,unsigned int size)
     comb->size=size;
     comb->digits=checkmalloc((sizeof(comb->digits[0])*comb->size));
     combinator_reset(comb);
-    comb->currentVector=(char**)checkmalloc((sizeof(char*)*comb->size+1));
+    comb->currentVector=(char**)checkmalloc(sizeof(char*)*(comb->size+1));
     return(comb);
 }/*combinator_new*/
     
