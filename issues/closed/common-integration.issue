@@ -2,7 +2,19 @@
 #+TITLE: common-library integration: status after the 2026-06 common fixes
 #+DATE: 2026-06-20
 
-* TODO [#C] common integration: verified link-compatible; no signature drift  :common:integration:
+* DONE [#C] common integration: verified link-compatible; no signature drift  :common:integration:
+  RESOLUTION (2026-06-20). Final whole-tree build (make PREFIX=/usr/local depend
+  all) against the freshly-installed common in /usr/local/lib: exit 0, zero
+  errors and zero undefined references. 58 executables build; the common static
+  libraries (libbclib.a, libbenlib.a, libbplib.a, and bolib/bprib/bpcombi/bjlib
+  where used) link cleanly. The 2026-06 common fixes were behaviour/memory fixes,
+  not signature changes, so the tools needed no API updates -- confirmed.
+  DECISION on the optional BenConvertString migration: NOT done. encoding.c's own
+  ConvertEncoding is correct (indexes Conversion[] with 0..255 fgetc values, so
+  it was never exposed to the old signed-char bug), works, and is validated;
+  migrating it would add churn/risk for no functional gain. Left as-is.
+  The CARD32<->INT32 -Wconversion cleanup is a tools-side nicety noted in
+  [[dosname]]; it does not affect the current build (no -Wsign-conversion).
   Context: the *common* libraries (bclib, benlib, bjlib, bolib, bplib, bprib,
   bpcombi) were reviewed and fixed in 2026-06 and reinstalled under
   =/usr/local/lib=. The concern was that tools linking them might need updates.
