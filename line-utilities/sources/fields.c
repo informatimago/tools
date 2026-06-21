@@ -41,23 +41,32 @@ LEGAL
     void get_field(char* field,const char* record,
                    int/*char*/ field_separator,unsigned int field_index)
     {
-        if(field_index<=0){
+        if(field_index==0){
             strcpy(field,record);
         }else{
-            size_t start=0;
-            size_t stop=0;
-            while(0<field_index){
-                const char* separator;
-                field_index--;
+            size_t       start=0;
+            size_t       stop;
+            unsigned int remaining=field_index-1;
+            const char*  separator;
+            /* Skip past the (field_index-1) separators before the wanted field.
+               If there are fewer fields than requested, the field is empty. */
+            while(remaining>0){
                 separator=strchr(record+start,field_separator);
                 if(separator==NULL){
-                    stop=strlen(record);
-                }else{
-                    stop=(size_t)(separator-record);
+                    field[0]='\0';
+                    return;
                 }
-                start=stop+1;
+                start=(size_t)(separator-record)+1;
+                remaining--;
             }
-            strncpy(field,record+start,stop-start);
+            /* The field runs from start up to the next separator (or end). */
+            separator=strchr(record+start,field_separator);
+            if(separator==NULL){
+                stop=strlen(record);
+            }else{
+                stop=(size_t)(separator-record);
+            }
+            memcpy(field,record+start,stop-start);
             field[stop-start]='\0';
         }
         /* fprintf(stderr,"got from %08x field '%s'\n",record,field);//DEBUG*/

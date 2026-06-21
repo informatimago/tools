@@ -1,5 +1,8 @@
+TARGET  := $(shell uname)
+PREFIX  := /usr/local
 MAKEDIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))../../common/makedir)
 
+MODULE=sumascii
 CSOURCES=sumascii.c
 PROGRAMS=sumascii
 sumascii_OBJECTS=$(CSOURCES:.c=.o)

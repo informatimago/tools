@@ -64,13 +64,15 @@ static int copy(FILE* input,FILE* output)
     errno=0;
     rsize=fread(buffer,sizeof(char),buffersize,input);
     while(rsize>0){
-        wsize=0;
         p=buffer;
-        do{
-            p+=(wsize/sizeof(char));
+        while(rsize>0){
+            wsize=fwrite(p,sizeof(char),rsize,output);
+            if(wsize<rsize&&ferror(output)){
+                return(errno);
+            }
+            p+=wsize;
             rsize-=wsize;
-            wsize=fwrite(buffer,sizeof(char),rsize,output);
-        }while(wsize<rsize);
+        }
         rsize=fread(buffer,sizeof(char),buffersize,input);
     }
     return(errno);
@@ -79,7 +81,6 @@ static int copy(FILE* input,FILE* output)
     
 int main(int argc,char** argv)
 {
-    char        c;
     int         count;
         
     if(argc!=2){
@@ -87,8 +88,7 @@ int main(int argc,char** argv)
         return(1);
     }
     count=atoi(argv[1]);
-    while(count>0){
-        c=(char)getchar();
+    while((count>0)&&(getchar()!=EOF)){
         count--;
     }
     return(copy(stdin,stdout));

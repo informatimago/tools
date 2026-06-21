@@ -32,7 +32,7 @@
             }
             fclose(in);
         }
-        printf("%10ld %s\n",sum,fname);
+        printf("%10lu %s\n",sum,fname);
     }/*sum32*/
     
 

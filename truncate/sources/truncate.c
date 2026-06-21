@@ -36,7 +36,7 @@ LEGAL
     Boston, MA 02111-1307 USA
 ******************************************************************************/
 #include <stdio.h>
-#if defined(AIX) || defined(Linux) || defined(MACOSX)
+#if defined(AIX) || defined(Linux) || defined(__linux__) || defined(__unix__) || defined(MACOSX)
 #include <unistd.h> /* truncate */
 #include <sys/types.h>
 #endif

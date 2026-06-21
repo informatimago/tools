@@ -43,13 +43,18 @@ static void extractbit1(FILE* in,FILE* out)
     char    outbyte;
     char    inbyte;
     int     i;
-    int r;
-    while(!feof(in)){
+    for(;;){
+        outbyte=0;
         for(i=0;i<8;i++){
-            r=(int)fread(&inbyte,1,1,in);
+            if(fread(&inbyte,1,1,in)!=1){
+                /* end of input (or error): do not emit a partial byte. */
+                return;
+            }
             outbyte=(char)((outbyte<<1)|(inbyte&1));
         }
-        r=(int)fwrite(&outbyte,1,1,out);
+        if(fwrite(&outbyte,1,1,out)!=1){
+            return;
+        }
     }
 }/*extractbit1*/
 

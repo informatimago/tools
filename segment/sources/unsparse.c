@@ -99,7 +99,7 @@ LEGAL
             total_read_size=(size_t)((ssize_t)total_read_size+read_size);
             remain_to_read=(size_t)((ssize_t)remain_to_read-read_size);
             remain_buffer+=read_size;
-            if(remain_to_read<=0){
+            if(remain_to_read==0){
                 (*size)=total_read_size;
                 return(1);
             }
@@ -160,7 +160,7 @@ LEGAL
             total_write_size=(size_t)((ssize_t)total_write_size+write_size);
             remain_to_write=(size_t)((ssize_t)remain_to_write-write_size);
             remain_buffer+=write_size;
-            if(remain_to_write<=0){
+            if(remain_to_write==0){
                 (*size)=total_write_size;
                 return(1);
             }
@@ -206,6 +206,7 @@ LEGAL
         buffer=(unsigned char*)malloc(size);
         if(buffer==0){
             perror("malloc");
+            close(fd);
             return;
         }
 

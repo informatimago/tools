@@ -389,7 +389,7 @@ static CARD32 Segment_Copy(FILE* src,FILE* dst,CARD32 size,
             break;
         }
         r=fwrite(buffer,1,csize,dst);
-        if(ferror(dst)){
+        if((r<csize)||ferror(dst)){
             fprintf(stderr,"### Write error on %s: skipping %s.\n",
                     dstname,srcname);
             fflush(stderr);
@@ -433,7 +433,6 @@ static void Segment_Size(char* format,int/*INT16*/ fcase,char* wholename,
         fprintf(stderr,"### Cannot open the file %s: skipping.\n",
                 wholename);
         fflush(stderr);
-        fclose(wholefile);
         return;
     }
 
@@ -681,12 +680,11 @@ static BOOLEAN sgets(char* buffer,int size,FILE* file)
     clearerr(file);
     r=fgets(buffer,size,file);
     if(ferror(file)!=0){
-        sprintf(message,"%s: error while reading",pname);
+        snprintf(message,sizeof(message),"%s: error while reading",pname);
         perror(message);
         return(FALSE);
-    }else{
-        return(TRUE);
     }
+    return(r!=NULL);
 }/*sgets*/
 
 
@@ -729,14 +727,16 @@ static void Segment_CutFile(FILE* wholefile,FILE* segfile,
     char*       curbuf;     /* where in buffer to load the next line */
     CARD32      wholesize;  /* wholefile size */
     CARD32      segsize;    /* segfile size */
-    CARD32      cutlen; 
+    CARD32      cutlen=0; 
     CutStateT   cutstate;
     BOOLEAN     endofsegment;
 
     Cut_ResetCount(cuts,repcnt);
     segsize=0;
+    wholesize=0;
     endofsegment=FALSE;
     while(!(endofsegment||feof(wholefile))){
+        cutlen=0;
         curbuf=buffer+buflen;
         if(sgets(curbuf,(signed)(BufferSize-buflen),wholefile)){
             wholesize+=(CARD32)strlen(curbuf);
@@ -937,7 +937,8 @@ static int getnextparam(int argc,char* argv[],INT32 params,
                         const char* name,const char* Name,
                         const char* scanformat,const char* message)
 {
-    int     res;
+    int           res;
+    unsigned long ul=0;
 
     if(params>=argc){
         fprintf(stderr,"### %s - %s is missing.\n",argv[0],Name);
@@ -945,13 +946,21 @@ static int getnextparam(int argc,char* argv[],INT32 params,
         exit(EX_USAGE);
     }
 
-    res=sscanf(argv[params],scanformat,v1,v2);
+    /* The %lu formats expect an unsigned long*; scanning straight into a 4-byte
+       INT32/CARD32 overruns it on LP64.  Scan into ul, then narrow. */
+    res=sscanf(argv[params],scanformat,&ul,v2);
     if(res<=0){
         fprintf(stderr,"### %s - Syntax error in %s:%s\n%s\n",
                 argv[0],name,argv[params],message);
         usage(argv[0]);
         exit(EX_USAGE);
     }
+    if(ul>(unsigned long)MAX_CARD32){
+        fprintf(stderr,"### %s - %s is too large: %s\n",argv[0],Name,argv[params]);
+        usage(argv[0]);
+        exit(EX_USAGE);
+    }
+    *v1=(INT32)ul;
     return(res);
 }/*getnextparam*/
 
@@ -1056,7 +1065,6 @@ int main(int argc,char* argv[])
     char*           format=         NIL;
     CARD16          param;
     CARD16          length;
-    BOOLEAN         file;
     char**          fnames;
     CARD32          fcount;
     INT32           number=         -1;
@@ -1065,7 +1073,6 @@ int main(int argc,char* argv[])
     fcount=0;
 
     pname=argv[0];
-    file=FALSE;
     if(argc<=1){
         usage(argv[0]);
         exit(EX_USAGE);
@@ -1134,10 +1141,11 @@ int main(int argc,char* argv[])
                                        "# It must be a decimal integer. "\
                                        "Example:  10240");
                 if(numfields==2){
+                    unsigned long factor;
                     switch(factorstr[0]){
-                    case 'K': case 'k': lastsize*=1024;           break;
-                    case 'M': case 'm': lastsize*=1024*1024;      break;
-                    case 'G': case 'g': lastsize*=1024*1024*1024; break;
+                    case 'K': case 'k': factor=1024UL;           break;
+                    case 'M': case 'm': factor=1024UL*1024;      break;
+                    case 'G': case 'g': factor=1024UL*1024*1024; break;
                     default:
                         fprintf(stderr,
                                 "### %s - the factor must be either "\
@@ -1146,6 +1154,13 @@ int main(int argc,char* argv[])
                         usage(argv[0]);
                         exit(EX_USAGE);
                     }
+                    if((unsigned long)lastsize>(unsigned long)MAX_CARD32/factor){
+                        fprintf(stderr,"### %s - the size %lu%c is too large.\n",
+                                argv[0],(unsigned long)lastsize,factorstr[0]);
+                        usage(argv[0]);
+                        exit(EX_USAGE);
+                    }
+                    lastsize*=(CARD32)factor;
                 }
             }
             if(size==0){

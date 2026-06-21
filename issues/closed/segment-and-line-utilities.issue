@@ -2,7 +2,36 @@
 #+TITLE: segment / line-utilities / truncate / extractbit1: I/O + overflow bugs
 #+DATE: 2026-06-20
 
-* TODO [#A] segment, line-utilities, truncate, extractbit1, sum*: build + I/O correctness  :segment:line-utilities:truncate:extractbit1:build:io:
+* DONE [#A] segment, line-utilities, truncate, extractbit1, sum*: build + I/O correctness  :segment:line-utilities:truncate:extractbit1:build:io:
+  RESOLUTION (2026-06-20). All modules build clean under the strict flags.
+  Validated: get_field returns idx0=whole / idx1..3=fields / idx>=count=empty;
+  extractbit1 packs LSBs (01 00 01 00 01 00 01 00 -> 0xAA); segment -s 2K then
+  join is byte-identical on a 5000-byte file.
+  - line-utilities/fields.c: get_field rewritten. The old code captured the
+    wrong separator as the end and computed stop-start as a size_t underflow
+    (OOB) even for valid indices, and was off-by-one. Now it skips past
+    (field_index-1) separators, takes the field up to the next separator (or
+    end), and returns the empty string when there are fewer fields (per fields.h).
+  - segment/segment.c: getnextparam scans into an unsigned long (matching %lu)
+    then narrows with a range check, instead of scanning 8 bytes into a 4-byte
+    INT32* (stack overrun on LP64); the K/M/G size factor detects 32-bit
+    overflow; Segment_CutFile initialises wholesize and resets cutlen each
+    iteration; the copy loop detects short fwrite; sgets uses the fgets result
+    to detect EOF; the wholefile==NIL branch no longer fclose()s NIL; the dead
+    'file' variable removed.
+  - segment/join.c: num widened (was char[4]; %03 of a CARD32 could overflow)
+    and written with snprintf; the inner copy now checks the write count and the
+    correct stream (was ferror(segfile) on the write path).
+  - segment/unsparse.c: size_t counters compared ==0 (not <=0); close(fd) on the
+    malloc-failure path.
+  - truncate/binskip.c: same fixes as the ascii-utilities copy (EOF-terminated
+    skip; partial writes resume from p; dropped the unused char c). truncate.c
+    platform guard widened to __linux__/__unix__.
+  - extractbit1/extractbit1.c: outbyte initialised per group; reads check for a
+    full byte and stop cleanly at EOF (no uninitialised/garbage trailing byte).
+  - sumascii.c: guard the no-argument case (was an argv[argc] read); the Makefile
+    now sets MODULE/TARGET/PREFIX so it builds standalone, not only from the top.
+  - sum32/sum32.c: print the unsigned checksum with %lu.
   Full-tree review 2026-06-20 (gcc 14, strict flags; the strncpy/format/fclose
   value-range diagnostics need -O2, which the build uses). The recurring "'r'
   set but not used" warnings are mostly real unchecked-I/O bugs, not style nits.

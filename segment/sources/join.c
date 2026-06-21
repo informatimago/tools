@@ -50,7 +50,7 @@ static void MakeSegName(char* wholename,CARD32 n,char* segname){
 /*
     
 */
-    char        num[4];
+    char        num[16];
     CARD16      len;
     
     strcpy(segname,wholename);
@@ -58,7 +58,7 @@ static void MakeSegName(char* wholename,CARD32 n,char* segname){
     if(len>FileNameSize-4){
         len=FileNameSize-4;
     }
-    sprintf(num,"%03"FMT_CARD32"",n);
+    snprintf(num,sizeof(num),"%03" FMT_CARD32,n);
     segname[len]='.';       len++;
     segname[len]=num[0];    len++;
     segname[len]=num[1];    len++;
@@ -113,7 +113,7 @@ static void Join(char* wholename,BOOLEAN rmflag,BOOLEAN progress,BOOLEAN debug){
                     break;
                 }
                 r=fwrite(buffer,1,csize,wholefile);
-                if(ferror(segfile)){
+                if((r<csize)||ferror(wholefile)){
                     fprintf(stderr,"### Write error on %s: skipping.\n",wholename);
                     fflush(stderr);
                     fclose(segfile);
