@@ -52,15 +52,16 @@ assert_eq "ascii/beep emits BEL"        "07" "$("$A/beep" </dev/null | hexdump_b
 assert_eq "ascii/capitalize args"       "$(printf 'Hello\nWorld')" "$("$A/capitalize" hello world </dev/null)"
 assert_eq "ascii/lc -m CRLF"            "48 65 6c 6c 6f 0d" "$(printf 'Hello\n' | "$A/lc" -m | hexdump_bytes)"
 assert_eq "ascii/sevenbit ascii id"    "abc" "$(printf 'abc' | "$A/sevenbit")"
-assert_eq "ascii/text strips ctrl"      "abc" "$(printf 'a\x00b\x07c' | "$A/text")"
+assert_eq "ascii/text strips ctrl"      "abc" "$(printf 'a\000b\007c' | "$A/text")"
 assert_eq "ascii/sortchars"             "abcd" "$(printf 'dcba' | "$A/sortchars")"
 assert_eq "ascii/parity -s -o on A"     "c1" "$(printf 'A' | "$A/parity" -s -o | hexdump_bytes)"
 assert_eq "ascii/charcount counts"      "2" "$(printf 'AAB' | "$A/charcount" | awk '$0 ~ /^41 /{print $NF}')"
 assert_contains "ascii/ascii table"     "A" "$("$A/ascii" </dev/null)"
-assert_eq "ascii/whatisit binary"       "Binary" "$(printf '\x00\x01\xff' > "$TMP/bin.dat"; "$A/whatisit" "$TMP/bin.dat" | awk '{print $NF}')"
+assert_eq "ascii/whatisit binary"       "Binary" "$(printf '\000\001\377' > "$TMP/bin.dat"; "$A/whatisit" "$TMP/bin.dat" | awk '{print $NF}')"
 assert_eq "ascii/whatisit ascii"        "Ascii" "$(printf 'hello\n' > "$TMP/asc.dat"; "$A/whatisit" "$TMP/asc.dat" | awk '{print $NF}')"
-assert_eq "ascii/encoding -A clears hi" "41 42" "$(printf '\xc1\xc2' | "$A/encoding" -A | hexdump_bytes)"
-skip "ascii/randchar" "crashes in stale installed libbclib BcRandom seed handling (common, not tools)"
+assert_eq "ascii/encoding -A clears hi" "41 42" "$(printf '\301\302' | "$A/encoding" -A | hexdump_bytes)"
+assert_eq "ascii/randchar -r 65 65"     "AAAAAAAA" "$(timeout 5 "$A/randchar" -c 8 -r 65 65)"
+assert_eq "ascii/randchar -n -r 90 90"  "ZZZZZ" "$(timeout 5 "$A/randchar" -n -c 5 -r 90 90)"
 
 # ---------------------------------------------------------------- base
 assert_eq "base 255 -> hex FF"          "FF" "$("$B/base/sources/base" 255 16 </dev/null)"
@@ -121,7 +122,7 @@ printf 'abcdefghij\n' | timeout 5 "$L/lmax" 3 >/dev/null 2>&1; assert_rc "lmax a
 printf 'ab\nabcdefghij\n' | timeout 5 "$L/lmax" 3 >/dev/null 2>&1; assert_rc "lmax mixed -> 1" 1 $?
 
 # ---------------------------------------------------------------- extractbit1
-assert_eq "extractbit1 LSB pack"        "aa" "$(printf '\x01\x00\x01\x00\x01\x00\x01\x00' | timeout 5 "$B/extractbit1/sources/extractbit1" | hexdump_bytes)"
+assert_eq "extractbit1 LSB pack"        "aa" "$(printf '\001\000\001\000\001\000\001\000' | timeout 5 "$B/extractbit1/sources/extractbit1" | hexdump_bytes)"
 
 # ---------------------------------------------------------------- truncate
 printf 'HelloWorld' > "$TMP/trunc.dat"; "$B/truncate/sources/truncate" -4 "$TMP/trunc.dat" </dev/null
@@ -137,8 +138,10 @@ assert_eq "nema ascii passthrough"      "41 42 43" "$(printf 'ABC' | timeout 5 "
 assert_nonempty "bentest -a list"       "$(timeout 5 "$B/encoding/sources/bentest" -a </dev/null)"
 
 # ---------------------------------------------------------------- cookie (non-det / env)
-skip "cookie/cookie" "needs a configured cookie file; selection is random (non-deterministic)"
-skip "cookie/random" "crashes in stale installed libbclib BcRandom seed handling (common, not tools)"
+printf '#\nHELLO\n#\nHELLO\n#\nHELLO\n#\n' > "$TMP/ck.data"
+echo "$TMP/ck.data" > "$TMP/ck.files"
+assert_eq "cookie/cookie deterministic" "HELLO" "$(cookiefiles="$TMP/ck.files" timeout 5 "$B/cookie/sources/cookie")"
+assert_eq "cookie/random 1 -> 0"        "0" "$(timeout 5 "$B/cookie/sources/random" 1)"
 
 # ---------------------------------------------------------------- bocrypt
 printf 'PLAINTEXTDATA' > "$TMP/bp.txt"
